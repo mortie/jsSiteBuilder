@@ -38,7 +38,7 @@ async.series({
 
 			query = data.replace(/\{db\}/g, context.settings.mysql.database);
 
-			context.connection.query(data, function(err, result) {
+			context.connection.query(query, function(err, result) {
 				if (err)
 					return console.log(err);
 
