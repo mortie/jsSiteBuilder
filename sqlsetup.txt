@@ -6,9 +6,9 @@ CREATE SCHEMA IF NOT EXISTS `{db}` DEFAULT CHARACTER SET utf8 COLLATE utf8_gener
 USE `{db}` ;
 
 -- -----------------------------------------------------
--- Table `{db}`.`article`
+-- Table `{db}`.`articles`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `{db}`.`article` (
+CREATE  TABLE IF NOT EXISTS `{db}`.`articles` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `html` TEXT NULL ,
   `markdown` TEXT NOT NULL ,

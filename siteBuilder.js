@@ -4,11 +4,24 @@ var async = require('async');
 
 var context = {};
 
+function log(text) {
+	console.log(text)
+}
+
+function error(explanation, err) {
+	if (!err) {
+		return false;
+	}
+
+	var errorText = explanation+" ("+err+")";
+	log(errorText);
+	process.kill();
+}
+
 async.series({
 	"getSettings": function(next) {
 		fs.readFile("settings.json", "utf8", function(err, data) {
-			if (err)
-				return console.log(err);
+			error("Error reading settings file.", err);
 
 			context.settings = JSON.parse(data);
 			next();
@@ -24,8 +37,7 @@ async.series({
 		});
 
 		context.connection.connect(function(err) {
-			if (err)
-				return console.log(err);
+			error("Error connecting to database.", err);
 
 			next();
 		});
@@ -33,21 +45,23 @@ async.series({
 
 	"setup": function(next) {
 		fs.readFile("sqlsetup.txt", "utf8", function(err, data) {
-			if (err)
-				return console.log(err);
+			error("Error reading SQL setup file.", err);
 
 			query = data.replace(/\{db\}/g, context.settings.mysql.database);
 
 			context.connection.query(query, function(err, result) {
-				if (err)
-					return console.log(err);
+				error("Error querying database.", err);
 
 				next();
 			});
-		})
+		});
 	},
 
 	"build": function(next) {
-		console.log("This is where building and such will happen.");
+		context.connection.query("SELECT * FROM articles", function(err, result) {
+			error("Error querying database.", err);
+
+			console.log(result);
+		});
 	}
 });
