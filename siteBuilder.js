@@ -1,6 +1,7 @@
 var mysql = require('mysql');
 var fs = require('fs');
 var async = require('async');
+var markdown = require('markdown').markdown;
 
 var context = {};
 
@@ -57,11 +58,42 @@ async.series({
 		});
 	},
 
-	"build": function(next) {
-		context.connection.query("SELECT * FROM articles", function(err, result) {
+	"buildTree": function(next) {
+		context.tree = [];
+		context.connection.query("SELECT * FROM articles ORDER BY sort, dateSeconds", function(err, result) {
 			error("Error querying database.", err);
 
-			console.log(result);
+			for (var i=0; i<result.length; ++i) {
+				var article = result[i];
+
+				//update HTML if it's not already updated
+				if (!article.updated) {
+					log("HTML not updated for "+article.title+". Conveting from markdown...")
+					article.html = markdown.toHTML(article.markdown);
+				}
+
+				//do the tree building
+				if (!context.tree[article.type]) {
+					context.tree[article.type] = [];
+				}
+				context.tree[article.type].push(article);
+
+				//push HTML updates to the SQL if necessary
+				if (!article.updated) {
+					var values = {
+						"updated": true,
+						"html": article.html
+					};
+					context.connection.query("UPDATE articles SET ? WHERE id="+article.id+";", values, function(err, result) {
+						error("Error querying database.", err);
+					})
+				}
+			}
+			next();
 		});
+	},
+
+	"buildHTML": function(next) {
+		log(context.tree);
 	}
 });
