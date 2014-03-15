@@ -60,31 +60,31 @@ async.series({
 
 	"buildTree": function(next) {
 		context.tree = [];
-		context.connection.query("SELECT * FROM articles ORDER BY sort, dateSeconds", function(err, result) {
+		context.connection.query("SELECT * FROM entries ORDER BY sort, dateSeconds", function(err, result) {
 			error("Error querying database.", err);
 
 			for (var i=0; i<result.length; ++i) {
-				var article = result[i];
+				var entry = result[i];
 
 				//update HTML if it's not already updated
-				if (!article.updated) {
-					log("HTML not updated for "+article.title+". Conveting from markdown...")
-					article.html = markdown.toHTML(article.markdown);
+				if (!entry.updated) {
+					log("HTML not updated for entry '"+entry.title+"'. Conveting from markdown...")
+					entry.html = markdown.toHTML(entry.markdown);
 				}
 
 				//do the tree building
-				if (!context.tree[article.type]) {
-					context.tree[article.type] = [];
+				if (!context.tree[entry.type]) {
+					context.tree[entry.type] = [];
 				}
-				context.tree[article.type].push(article);
+				context.tree[entry.type].push(entry);
 
 				//push HTML updates to the SQL if necessary
-				if (!article.updated) {
+				if (!entry.updated) {
 					var values = {
 						"updated": true,
-						"html": article.html
+						"html": entry.html
 					};
-					context.connection.query("UPDATE articles SET ? WHERE id="+article.id+";", values, function(err, result) {
+					context.connection.query("UPDATE entries SET ? WHERE id="+entry.id+";", values, function(err, result) {
 						error("Error querying database.", err);
 					})
 				}
