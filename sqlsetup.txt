@@ -8,17 +8,25 @@ USE `{db}` ;
 -- -----------------------------------------------------
 -- Table `{db}`.`entries`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `{db}`.`entries` (
+CREATE TABLE IF NOT EXISTS `{db}`.`entries` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `html` TEXT NULL ,
   `updated` BOOL NOT NULL DEFAULT false ,
   `markdown` TEXT NOT NULL ,
   `title` VARCHAR(255) NOT NULL ,
+  `slug` VARCHAR(255) NOT NULL ,
   `dateSeconds` INT NOT NULL ,
-  `display` TINYINT(1) NOT NULL ,
-  `comments` TINYINT(1) NOT NULL ,
+  `display` BOOL NOT NULL ,
+  `comments` BOOL NOT NULL ,
   `sort` INT NOT NULL DEFAULT 0 ,
   `type` INT NOT NULL ,
+  PRIMARY KEY (`id`) )
+ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `{db}`.`media` (
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `name` VARCHAR(255) NOT NULL ,
+  `updated` BOOL NOT NULL DEFAULT false ,
   PRIMARY KEY (`id`) )
 ENGINE = InnoDB;
 

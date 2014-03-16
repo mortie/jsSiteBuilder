@@ -19,6 +19,19 @@ function error(explanation, err) {
 	process.kill();
 }
 
+function template(template, args, callback) {
+	fs.readFile(context.settings.dir.templates, function(err, data) {
+		error("Error reading template file.", err);
+
+		var str = "";
+		for (var i in args) {
+			str.replace(new RegExp("{"+i+"}", "g"), args[i]);
+		}
+
+		callback(false, str);
+	})
+}
+
 async.series({
 	"getSettings": function(next) {
 		fs.readFile("settings.json", "utf8", function(err, data) {
@@ -44,7 +57,7 @@ async.series({
 		});
 	},
 
-	"setup": function(next) {
+	"setupSql": function(next) {
 		fs.readFile("sqlsetup.txt", "utf8", function(err, data) {
 			error("Error reading SQL setup file.", err);
 
@@ -56,6 +69,44 @@ async.series({
 				next();
 			});
 		});
+	},
+
+	"setupMedia": function(next) {
+		 fs.mkdir(context.settings.dir.out, function(err) {
+			if (err && err.code != "EEXIST") {
+				error("Error creating public dir", err);
+			}
+
+			fs.mkdir("media", function(err) {
+				if (err && err.code != "EEXIST") {
+					error("Error creating hidden media dir", err);
+				}
+			});
+
+			fs.mkdir(context.settings.dir.out+"media", function(err) {
+				if (err && err.code != "EEXIST") {
+					error("Error creating public media dir", err);
+				}
+
+				context.connection.query("SELECT * FROM media WHERE updated=FALSE", function(err, result) {
+					error(err);
+
+					for (var i=0; i<result.length; ++i) {
+						var file = result[i];
+
+						fs.unlink(context.settings.dir.out+"media/"+result.name, function(err) {
+							error("Error deleting file", err);
+
+							//copy from media/ to public/media/
+							fs.createReadStream("media/"+file.name).pipe(fs.createWriteStream(context.settings.dir.out+"media/"+file.name));
+						}.bind(file));
+					}
+				});
+			});
+
+		 	//fixing media things in the file system can be done async; the rest will just pretend it is there already.
+			next()
+		 });
 	},
 
 	"buildTree": function(next) {
@@ -86,7 +137,7 @@ async.series({
 					};
 					context.connection.query("UPDATE entries SET ? WHERE id="+entry.id+";", values, function(err, result) {
 						error("Error querying database.", err);
-					})
+					});
 				}
 			}
 			next();
