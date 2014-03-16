@@ -13,7 +13,7 @@ function log(text) {
 			fs.mkdirSync(context.settings.dir.log);
 
 		var date = new Date();
-		var dateString = date.getFullYear()+"."+date.getMonth()+"."+date.getDate();
+		var dateString = date.getFullYear()+"."+(date.getMonth()+1)+"."+date.getDate();
 
 		fs.writeFileSync(context.settings.dir.log+dateString, text+"\n") ;
 	}
@@ -29,17 +29,21 @@ function error(explanation, err) {
 	process.exit();
 }
 
-function template(template, args, callback) {
-	fs.readFile(context.settings.dir.templates, function(err, data) {
+function template(template, args) {
+	try {
+		var str = fs.readFileSync(context.settings.dir.templates+context.settings.display.templates+"/"+template+".html", "utf8");
+	} catch(err) {
 		error("Error reading template file.", err);
+	}
 
-		var str = "";
-		for (var i in args) {
-			str.replace(new RegExp("{"+i+"}", "g"), args[i]);
-		}
+	for (var i in args) {
+		str = str.replace("{"+i+"}",  args[i], "g");
+	}
 
-		callback(false, str);
-	})
+	str = "<!--Start of template "+template+"-->\n"+str;
+	str += "<!--End of template "+template+"-->";
+
+	return str;
 }
 
 async.series({
@@ -109,7 +113,7 @@ async.series({
 
 							//copy from media/ to public/media/
 							fs.createReadStream("media/"+file.name).pipe(fs.createWriteStream(context.settings.dir.out+"media/"+file.name));
-						}.bind(file));
+						}.bind(file));t
 					}
 				});
 			});
@@ -154,7 +158,39 @@ async.series({
 		});
 	},
 
+	"buildMenu": function(next) {
+		var pages = context.tree[0];
+
+		if (!pages) {
+			log("No pages available! Will not build website.");
+			next();
+			return;
+		}
+
+		context.html = {}
+
+		var htmlNav = "";
+		for (var i=0; i<pages.length; ++i) {
+			var page = pages[i];
+
+			htmlNav += template("navEntry", {
+				"slug": page.slug,
+				"title": page.title
+			});
+		}
+
+		context.html.menu = template("menu", {
+			"title": context.settings.display.title,
+			"nav": htmlNav
+		});
+		next();
+	},
+
 	"buildHTML": function(next) {
-		
+		if (!context.html) {
+			next();
+			return;
+		}
+		console.log(context.html.menu);
 	}
 });
