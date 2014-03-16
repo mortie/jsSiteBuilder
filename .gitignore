@@ -1,3 +1,4 @@
 *.mwb
 *.swo
 *.swp
+logs/*

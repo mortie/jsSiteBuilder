@@ -5,8 +5,18 @@ var markdown = require('markdown').markdown;
 
 var context = {};
 
-function log(text) {
-	console.log(text)
+function log(text, shouldHalt) {
+	console.log(text);
+
+	if (context.settings.logToFile) {
+		if (!fs.existsSync(context.settings.dir.log))
+			fs.mkdirSync(context.settings.dir.log);
+
+		var date = new Date();
+		var dateString = date.getFullYear()+"."+date.getMonth()+"."+date.getDate();
+
+		fs.writeFileSync(context.settings.dir.log+dateString, text+"\n") ;
+	}
 }
 
 function error(explanation, err) {
@@ -15,8 +25,8 @@ function error(explanation, err) {
 	}
 
 	var errorText = explanation+" ("+err+")";
-	log(errorText);
-	process.kill();
+	log(errorText, true);
+	process.exit();
 }
 
 function template(template, args, callback) {
@@ -145,6 +155,6 @@ async.series({
 	},
 
 	"buildHTML": function(next) {
-		log(context.tree);
+		
 	}
 });
