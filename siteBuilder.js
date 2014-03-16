@@ -5,7 +5,7 @@ var markdown = require('markdown').markdown;
 
 var context = {};
 
-function log(text, shouldHalt) {
+function log(text) {
 	console.log(text);
 
 	if (context.settings.logToFile) {
@@ -25,7 +25,7 @@ function error(explanation, err) {
 	}
 
 	var errorText = explanation+" ("+err+")";
-	log(errorText, true);
+	log(errorText);
 	process.exit();
 }
 
