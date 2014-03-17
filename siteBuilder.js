@@ -10,6 +10,7 @@ var errorGrades = [
 	"Warning",
 	"Error  "
 ];
+context.callbacks = 0;
 
 function log(text, grade) {
 	if (!grade) {
@@ -37,7 +38,7 @@ function log(text, grade) {
 		var minutes = date.getMinutes();
 		    if (minutes.length < 2) minutes = "0"+minutes;
 		var seconds = date.getSeconds();
-		    if (seconds.length < 2) seconds = "0"+seconds; 
+		    if (seconds.length < 2) seconds = "0"+seconds;
 
 		var path = context.settings.dir.log+yyyy+"."+mm+"."+dd;
 		text = "["+hours+":"+minutes+":"+seconds+"] "+text;
@@ -143,11 +144,13 @@ function parseEntry(entry) {
 
 async.series({
 	"getSettings": function(next) {
+		++context.callbacks;
 		fs.readFile("settings.json", "utf8", function(err, data) {
 			error("Reading settings file failed.", err);
 
 			context.settings = JSON.parse(data);
 			next();
+			--context.callbacks;
 		});
 	},
 
@@ -159,50 +162,62 @@ async.series({
 			"multipleStatements": true
 		});
 
+		++context.callbacks;
 		context.connection.connect(function(err) {
 			error("Connecting to database failed.", err);
 
 			next();
+			--context.callbacks;
 		});
 	},
 
 	"setupSql": function(next) {
+		++context.callbacks;
 		fs.readFile("sqlSetup.txt", "utf8", function(err, data) {
 			error("Reading SQL setup file failed.", err);
 
 			query = data.replace(/\{db\}/g, context.settings.mysql.database);
 
+			++context.callbacks;
 			context.connection.query(query, function(err, result) {
 				error("Querying database failed.", err);
 
 				next();
+				--context.callbacks;
 			});
+			--context.callbacks;
 		});
 	},
 
 	"setupMedia": function(next) {
-		 fs.mkdir(context.settings.dir.out, function(err) {
+		++context.callbacks;
+		fs.mkdir(context.settings.dir.out, function(err) {
 			if (err && err.code != "EEXIST") {
 				error("Creating public dir failed.", err);
 			}
 
+			++context.callbacks;
 			fs.mkdir("media", function(err) {
 				if (err && err.code != "EEXIST") {
 					error("Creating hidden media dir failed.", err);
 				}
+				--context.callbacks;
 			});
 
+			++context.callbacks;
 			fs.mkdir(context.settings.dir.out+"media", function(err) {
 				if (err && err.code != "EEXIST") {
 					error("Creating public media dir failed.", err);
 				}
 
+				++context.callbacks;
 				context.connection.query("SELECT * FROM media WHERE updated=FALSE", function(err, result) {
 					error("Querying database failed.", err);
 
 					for (var i=0; i<result.length; ++i) {
 						var file = result[i];
 
+						++context.callbacks;
 						fs.unlink(context.settings.dir.out+"media/"+result.name, function(err) {
 							error("Deleting file failed.", err);
 
@@ -210,18 +225,23 @@ async.series({
 							fs.createReadStream("media/"+file.name).pipe(
 								fs.createWriteStream(context.settings.dir.out+"media/"+file.name)
 							);
+							--context.callbacks;
 						}.bind(file));t
 					}
+					--context.callbacks;
 				});
+				--context.callbacks;
 			});
 
 		 	//fixing media things in the file system can be done async; the rest will just pretend it is there already.
-			next()
+			next();
+			--context.callbacks;
 		 });
 	},
 
 	"buildTree": function(next) {
 		context.tree = [];
+		++context.callbacks;
 		context.connection.query("SELECT * FROM entries ORDER BY sort, dateSeconds", function(err, result) {
 			error("Querying database failed.", err);
 
@@ -246,12 +266,15 @@ async.series({
 						"updated": true,
 						"html": entry.html
 					};
+					++context.callbacks;
 					context.connection.query("UPDATE entries SET ? WHERE id="+entry.id+";", values, function(err, result) {
 						error("Querying database failed.", err);
+						--context.callbacks;
 					});
 				}
 			}
 			next();
+			--context.callbacks;
 		});
 	},
 
@@ -284,16 +307,29 @@ async.series({
 			var path = context.settings.dir.out+entry.metadata.slug;
 			log("Writing '"+entry.metadata.title+"' to "+path+".", 0);
 
+			++context.callbacks;
 			fs.writeFile(path, entry.html, function(err) {
 				error("Writing file to public dir failed.", err);
+				--context.callbacks;
 			});
 		}
 		var indexEntry = context.html[0];
 		var path = context.settings.dir.out+"index.html";
 		log("Writing '"+indexEntry.metadata.title+"' to "+path+".", 0);
 
+		++context.callbacks;
 		fs.writeFile(path, indexEntry.html, function(err) {
 			error("Writing fire to public dir failed.", err);
+			--context.callbacks;
 		});
+		next();
+	},
+
+	"cleanup": function(next) {
+		setInterval(function() {
+			if (context.callbacks == 0) {
+				process.exit();
+			}
+		}, 1);
 	}
 });

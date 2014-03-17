@@ -2,4 +2,5 @@
 *.swo
 *.swp
 logs/*
-
+public/*
+settings.json
