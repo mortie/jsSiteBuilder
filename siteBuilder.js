@@ -11,6 +11,7 @@ var errorGrades = [
 	"Error  "
 ];
 context.callbacks = 0;
+context.caches = {};
 
 function log(text, grade) {
 	if (!grade) {
@@ -25,23 +26,30 @@ function log(text, grade) {
 			fs.mkdirSync(context.settings.dir.log);
 		}
 
-		var date = new Date();
+		if (!context.caches.log) {
+			context.caches.log = {};
 
-		var yyyy = date.getFullYear();	
-		var mm = date.getMonth()+1;
-		    if (mm.length < 2) mm = "0"+mm;
-		var dd = date.getDate();
-		    if (dd.length < 2) dd = "0"+dd;
+			var date = new Date();
 
-		var hours = date.getHours();
-		    if (hours.length < 2) hours = "0"+hours;
-		var minutes = date.getMinutes();
-		    if (minutes.length < 2) minutes = "0"+minutes;
-		var seconds = date.getSeconds();
-		    if (seconds.length < 2) seconds = "0"+seconds;
+			var yyyy = new String(date.getFullYear());	
+			var mm = new String(date.getMonth()+1);
+			    if (mm.length < 2) mm = "0"+mm;
+			var dd = new String(date.getDate());
+			    if (dd.length < 2) dd = "0"+dd;
 
-		var path = context.settings.dir.log+yyyy+"."+mm+"."+dd;
-		text = "["+hours+":"+minutes+":"+seconds+"] "+text;
+			var hours = new String(date.getHours());
+			    if (hours.length < 2) hours = "0"+hours;
+			var minutes = new String(date.getMinutes());
+			    if (minutes.length < 2) minutes = "0"+minutes;
+			var seconds = new String(date.getSeconds());
+			    if (seconds.length < 2) seconds = "0"+seconds;
+
+			context.caches.log.dateString = yyyy+"."+mm+"."+dd;
+			context.caches.log.timeString = hours+":"+minutes+":"+seconds;
+		}
+
+		var path = context.settings.dir.log+context.caches.log.dateString;
+		text = "["+context.caches.log.timeString+"] "+text;
 
 		fs.appendFileSync(path, text+"\n");
 	}
@@ -58,22 +66,21 @@ function error(explanation, err) {
 }
 
 function template(template, args) {
-	if (!this.cache) {
-		this.cache = {};
+	if (!context.caches.template) {
+		context.caches.template = {};
 	}
-
-	if (!this.cache[template]) {
+	if (!context.caches.template[template]) {
 		try {
 			var path = context.settings.dir.templates+
 			           context.settings.display.templates+
 			           "/"+template+".html";
-			this.cache[template] = fs.readFileSync(path, "utf8");
+			context.caches.template[template] = fs.readFileSync(path, "utf8");
 		} catch(err) {
 			error("Reading template file failed.", err);
 		}
 	}
 
-	var str = this.cache[template];
+	var str = context.caches.template[template];
 
 	for (var i in args) {
 		str = str.replace("{"+i+"}",  args[i], "g");
