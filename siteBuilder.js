@@ -4,8 +4,19 @@ var async = require('async');
 var markdown = require('markdown').markdown;
 
 var context = {};
+var errorGrades = [
+	"Infio  ",
+	"Notice ",
+	"Warning",
+	"Error  "
+];
 
-function log(text) {
+function log(text, grade) {
+	if (!grade) {
+		grade = 0;
+	}
+
+	text = errorGrades[grade]+": "+text;
 	console.log(text);
 
 	if (context.settings.logToFile) {
@@ -35,7 +46,7 @@ function error(explanation, err) {
 	}
 
 	var errorText = explanation+" ("+err+")";
-	log(errorText);
+	log(errorText, 3);
 	process.exit(1);
 }
 
@@ -47,7 +58,7 @@ function template(template, args, directString) {
 			           "/"+template+".html";
 			var str = fs.readFileSync(path, "utf8");
 		} catch(err) {
-			error("Error reading template file.", err);
+			error("Reading template file failed.", err);
 		}
 	} else {
 		var str = template;
@@ -94,10 +105,40 @@ function buildMenu(currentEntry) {
 	});
 }
 
+function parseEntry(entry) {
+	var entryText = entry.html;
+
+	var matches = entryText.match(/{.+}/);
+	if (matches) {
+		for (var i=0; i<matches.length; ++i) {
+			var match = matches[i]
+			    .replace("{", "")
+			    .replace("}", "")
+			    .replace(/\s+/g, "")
+			    .split(",");
+
+			if (!match[2]) {
+				match[2] = 1;
+			}
+
+			if (match[0] == "allposts") {
+				if (context.tree[match[2]]) {
+					for (var j=0; j<context.tree[match[2]].length; ++j) {
+						var entry = context.tree[match[2]];
+					}
+				} else {
+					log("Entry '"+entry.title+"' requested all entries with type "+match[2]+", but no entries with type "+match[2]+" was found.", 1);
+				}
+			}
+		}
+	}
+	return entryText;
+}
+
 async.series({
 	"getSettings": function(next) {
 		fs.readFile("settings.json", "utf8", function(err, data) {
-			error("Error reading settings file.", err);
+			error("Reading settings file failed.", err);
 
 			context.settings = JSON.parse(data);
 			next();
@@ -113,7 +154,7 @@ async.series({
 		});
 
 		context.connection.connect(function(err) {
-			error("Error connecting to database.", err);
+			error("Connecting to database failed.", err);
 
 			next();
 		});
@@ -121,12 +162,12 @@ async.series({
 
 	"setupSql": function(next) {
 		fs.readFile("sqlSetup.txt", "utf8", function(err, data) {
-			error("Error reading SQL setup file.", err);
+			error("Reading SQL setup file failed.", err);
 
 			query = data.replace(/\{db\}/g, context.settings.mysql.database);
 
 			context.connection.query(query, function(err, result) {
-				error("Error querying database.", err);
+				error("Querying database failed.", err);
 
 				next();
 			});
@@ -136,28 +177,28 @@ async.series({
 	"setupMedia": function(next) {
 		 fs.mkdir(context.settings.dir.out, function(err) {
 			if (err && err.code != "EEXIST") {
-				error("Error creating public dir", err);
+				error("Creating public dir failed.", err);
 			}
 
 			fs.mkdir("media", function(err) {
 				if (err && err.code != "EEXIST") {
-					error("Error creating hidden media dir", err);
+					error("Creating hidden media dir failed.", err);
 				}
 			});
 
 			fs.mkdir(context.settings.dir.out+"media", function(err) {
 				if (err && err.code != "EEXIST") {
-					error("Error creating public media dir", err);
+					error("Creating public media dir failed.", err);
 				}
 
 				context.connection.query("SELECT * FROM media WHERE updated=FALSE", function(err, result) {
-					error(err);
+					error("Querying database failed.", err);
 
 					for (var i=0; i<result.length; ++i) {
 						var file = result[i];
 
 						fs.unlink(context.settings.dir.out+"media/"+result.name, function(err) {
-							error("Error deleting file", err);
+							error("Deleting file failed.", err);
 
 							//copy from media/ to public/media/
 							fs.createReadStream("media/"+file.name).pipe(
@@ -176,14 +217,14 @@ async.series({
 	"buildTree": function(next) {
 		context.tree = [];
 		context.connection.query("SELECT * FROM entries ORDER BY sort, dateSeconds", function(err, result) {
-			error("Error querying database.", err);
+			error("Querying database failed.", err);
 
 			for (var i=0; i<result.length; ++i) {
 				var entry = result[i];
 
 				//update HTML if it's not already updated
 				if (!entry.updated) {
-					log("HTML not updated for entry '"+entry.title+"'. Conveting from markdown...");
+					log("HTML not updated for entry '"+entry.title+"'. Conveting from markdown...", 0);
 					entry.html = markdown.toHTML(entry.markdown);
 				}
 
@@ -200,7 +241,7 @@ async.series({
 						"html": entry.html
 					};
 					context.connection.query("UPDATE entries SET ? WHERE id="+entry.id+";", values, function(err, result) {
-						error("Error querying database.", err);
+						error("Querying database failed.", err);
 					});
 				}
 			}
@@ -211,22 +252,22 @@ async.series({
 	"buildHTML": function(next) {
 		context.html = {};
 
-		for (var j=0; j<context.tree.length; ++j) {
-			for (var i=0; i<context.tree[j].length; ++i) {
-				var entry = context.tree[j][i];
+		for (var i=0; i<context.tree.length; ++i) {
+			for (var j=0; j<context.tree[i].length; ++j) {
+				var entry = context.tree[i][j];
 
 				var entryHTML = template("index", {
 					"title": entry.title+" - "+context.settings.display.title,
 					"menu": buildMenu(entry),
-					"content": entry.html
+					"content": parseEntry(entry)
 				});
 
 				var path=context.settings.dir.out+entry.slug;
 
-				log("Writing '"+entry.title+"' to "+path);
+				log("Writing '"+entry.title+"' to "+path+".", 0);
 
 				fs.writeFile(path, entryHTML, function(err) {
-					error("Error writing file to public dir.", err);
+					error("Writing file to public dir failed.", err);
 				});
 			}
 		}
