@@ -20,18 +20,24 @@ function log(text, grade) {
 	console.log(text);
 
 	if (context.settings.logToFile) {
-		if (!fs.existsSync(context.settings.dir.log))
+		if (!fs.existsSync(context.settings.dir.log)) {
 			fs.mkdirSync(context.settings.dir.log);
+		}
 
 		var date = new Date();
 
-		var yyyy = date.getFullYear();
+		var yyyy = date.getFullYear();	
 		var mm = date.getMonth()+1;
+		    if (mm.length < 2) mm = "0"+mm;
 		var dd = date.getDate();
+		    if (dd.length < 2) dd = "0"+dd;
 
 		var hours = date.getHours();
+		    if (hours.length < 2) hours = "0"+hours;
 		var minutes = date.getMinutes();
+		    if (minutes.length < 2) minutes = "0"+minutes;
 		var seconds = date.getSeconds();
+		    if (seconds.length < 2) seconds = "0"+seconds; 
 
 		var path = context.settings.dir.log+yyyy+"."+mm+"."+dd;
 		text = "["+hours+":"+minutes+":"+seconds+"] "+text;
@@ -250,7 +256,7 @@ async.series({
 	},
 
 	"buildHTML": function(next) {
-		context.html = {};
+		context.html = [];
 
 		for (var i=0; i<context.tree.length; ++i) {
 			for (var j=0; j<context.tree[i].length; ++j) {
@@ -262,14 +268,32 @@ async.series({
 					"content": parseEntry(entry)
 				});
 
-				var path=context.settings.dir.out+entry.slug;
-
-				log("Writing '"+entry.title+"' to "+path+".", 0);
-
-				fs.writeFile(path, entryHTML, function(err) {
-					error("Writing file to public dir failed.", err);
+				context.html.push({
+					"html": entryHTML,
+					"metadata": entry
 				});
 			}
 		}
+		next();
+	},
+
+	"writeHTML": function(next) {
+		for (var i=0; i<context.html.length; ++i) {
+			entry = context.html[i];
+
+			var path = context.settings.dir.out+entry.metadata.slug;
+			log("Writing '"+entry.metadata.title+"' to "+path+".", 0);
+
+			fs.writeFile(path, entry.html, function(err) {
+				error("Writing file to public dir failed.", err);
+			});
+		}
+		var indexEntry = context.html[0];
+		var path = context.settings.dir.out+"index.html";
+		log("Writing '"+indexEntry.metadata.title+"' to "+path+".", 0);
+
+		fs.writeFile(path, indexEntry.html, function(err) {
+			error("Writing fire to public dir failed.", err);
+		});
 	}
 });
