@@ -57,19 +57,23 @@ function error(explanation, err) {
 	process.exit(1);
 }
 
-function template(template, args, directString) {
-	if (!directString) {
+function template(template, args) {
+	if (!this.cache) {
+		this.cache = {};
+	}
+
+	if (!this.cache[template]) {
 		try {
 			var path = context.settings.dir.templates+
 			           context.settings.display.templates+
 			           "/"+template+".html";
-			var str = fs.readFileSync(path, "utf8");
+			this.cache[template] = fs.readFileSync(path, "utf8");
 		} catch(err) {
 			error("Reading template file failed.", err);
 		}
-	} else {
-		var str = template;
 	}
+
+	var str = this.cache[template];
 
 	for (var i in args) {
 		str = str.replace("{"+i+"}",  args[i], "g");
