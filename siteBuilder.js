@@ -1,157 +1,12 @@
+var context = {};
+context.callbacks = 0;
+context.caches = {};
+context.startTime = (new Date()).getTime();
+
 var mysql = require('mysql');
 var fs = require('fs');
 var async = require('async');
 var markdown = require('markdown').markdown;
-
-var context = {};
-var errorGrades = [
-	"Infio  ",
-	"Notice ",
-	"Warning",
-	"Error  "
-];
-context.callbacks = 0;
-context.caches = {};
-
-function log(text, grade) {
-	if (!grade) {
-		grade = 0;
-	}
-
-	text = errorGrades[grade]+": "+text;
-	console.log(text);
-
-	if (context.settings.logToFile) {
-		if (!fs.existsSync(context.settings.dir.log)) {
-			fs.mkdirSync(context.settings.dir.log);
-		}
-
-		if (!context.caches.log) {
-			context.caches.log = {};
-
-			var date = new Date();
-
-			var yyyy = new String(date.getFullYear());	
-			var mm = new String(date.getMonth()+1);
-			    if (mm.length < 2) mm = "0"+mm;
-			var dd = new String(date.getDate());
-			    if (dd.length < 2) dd = "0"+dd;
-
-			var hours = new String(date.getHours());
-			    if (hours.length < 2) hours = "0"+hours;
-			var minutes = new String(date.getMinutes());
-			    if (minutes.length < 2) minutes = "0"+minutes;
-			var seconds = new String(date.getSeconds());
-			    if (seconds.length < 2) seconds = "0"+seconds;
-
-			context.caches.log.dateString = yyyy+"."+mm+"."+dd;
-			context.caches.log.timeString = hours+":"+minutes+":"+seconds;
-		}
-
-		var path = context.settings.dir.log+context.caches.log.dateString;
-		text = "["+context.caches.log.timeString+"] "+text;
-
-		fs.appendFileSync(path, text+"\n");
-	}
-}
-
-function error(explanation, err) {
-	if (!err) {
-		return false;
-	}
-
-	var errorText = explanation+" ("+err+")";
-	log(errorText, 3);
-	process.exit(1);
-}
-
-function template(template, args) {
-	if (!context.caches.template) {
-		context.caches.template = {};
-	}
-	if (!context.caches.template[template]) {
-		try {
-			var path = context.settings.dir.templates+
-			           context.settings.display.templates+
-			           "/"+template+".html";
-			context.caches.template[template] = fs.readFileSync(path, "utf8");
-		} catch(err) {
-			error("Reading template file failed.", err);
-		}
-	}
-
-	var str = context.caches.template[template];
-
-	for (var i in args) {
-		str = str.replace("{"+i+"}",  args[i], "g");
-	}
-
-	str = "<!--Start of template "+template+"-->\n"+str;
-	str += "<!--End of template "+template+"-->\n";
-
-	return str;
-}
-
-function buildMenu(currentEntry) {
-	var pages = context.tree[0];
-
-	if (!pages) {
-		log("No pages available! Will not build website.");
-		return;
-	}
-
-	var htmlNav = "";
-	for (var i=0; i<pages.length; ++i) {
-		var page = pages[i];
-
-		if (currentEntry && currentEntry.slug == page.slug) {
-			var current = "current";
-		} else {
-			var current = "";
-		}
-
-		htmlNav += template("navEntry", {
-			"slug": page.slug,
-			"title": page.title,
-			"current": current
-		});
-	}
-
-	return template("menu", {
-		"title": context.settings.display.title,
-		"nav": htmlNav,
-	});
-}
-
-function parseEntry(entry) {
-	var entryText = entry.html;
-
-	var matches = entryText.match(/{.+}/);
-	if (matches) {
-		for (var i=0; i<matches.length; ++i) {
-			var match = matches[i]
-			    .replace("{", "")
-			    .replace("}", "")
-			    .replace(/\s+/g, "")
-			    .split(",");
-
-			if (!match[2]) {
-				match[2] = 1;
-			}
-
-			if (match[0] == "allposts") {
-				if (context.tree[match[2]]) {
-					for (var j=0; j<context.tree[match[2]].length; ++j) {
-						var entry = context.tree[match[2]];
-					}
-				} else {
-					log("Entry '"+entry.title+"' requested all entries with type "+match[2]+", but no entries with type "+match[2]+" was found.", 1);
-				}
-			}
-		}
-	}
-	return entryText;
-}
 
 async.series({
 	"getSettings": function(next) {
@@ -187,7 +42,7 @@ async.series({
 		fs.readFile("sqlSetup.txt", "utf8", function(err, data) {
 			error("Reading SQL setup file failed.", err);
 
-			query = data.replace(/\{db\}/g, context.settings.mysql.database);
+			var query = data.replace(/\{db\}/g, context.settings.mysql.database);
 
 			++context.callbacks;
 			context.connection.query(query, function(err, result) {
@@ -237,17 +92,17 @@ async.series({
 								fs.createWriteStream(context.settings.dir.out+"media/"+file.name)
 							);
 							--context.callbacks;
-						}.bind(file));t
+						}.bind(file));
 					}
 					--context.callbacks;
 				});
 				--context.callbacks;
 			});
 
-		 	//fixing media things in the file system can be done async; the rest will just pretend it is there already.
+			//fixing media things in the file system can be done async; the rest will just pretend it is there already.
 			next();
 			--context.callbacks;
-		 });
+		});
 	},
 
 	"buildTree": function(next) {
@@ -312,35 +167,194 @@ async.series({
 	},
 
 	"writeHTML": function(next) {
+		var path;
 		for (var i=0; i<context.html.length; ++i) {
-			entry = context.html[i];
+			var entry = context.html[i];
 
-			var path = context.settings.dir.out+entry.metadata.slug;
-			log("Writing '"+entry.metadata.title+"' to "+path+".", 0);
-
-			++context.callbacks;
-			fs.writeFile(path, entry.html, function(err) {
-				error("Writing file to public dir failed.", err);
-				--context.callbacks;
-			});
+			path = context.settings.dir.out+entry.metadata.slug+"/";
+			writeEntry(path, entry);
 		}
-		var indexEntry = context.html[0];
-		var path = context.settings.dir.out+"index.html";
-		log("Writing '"+indexEntry.metadata.title+"' to "+path+".", 0);
+		path = context.settings.dir.out;
+		writeEntry(path, context.html[0]);
 
-		++context.callbacks;
-		fs.writeFile(path, indexEntry.html, function(err) {
-			error("Writing fire to public dir failed.", err);
-			--context.callbacks;
-		});
 		next();
 	},
 
 	"cleanup": function(next) {
 		setInterval(function() {
-			if (context.callbacks == 0) {
+			if (context.callbacks === 0) {
+				var endTime = (new Date()).getTime();
+				log("Completed in "+(endTime-context.startTime)+" milliseconds.", 0);
 				process.exit();
 			}
-		}, 1);
+		}, 0);
 	}
 });
+
+var errorGrades = [
+	"Infio  ",
+	"Notice ",
+	"Warning",
+	"Error  "
+];
+
+function log(text, grade) {
+	if (!grade) {
+		grade = 0;
+	}
+
+	text = errorGrades[grade]+": "+text;
+	console.log(text);
+
+	if (context.settings.logToFile) {
+		if (!fs.existsSync(context.settings.dir.log)) {
+			fs.mkdirSync(context.settings.dir.log);
+		}
+
+		if (!context.caches.log) {
+			context.caches.log = {};
+
+			var date = new Date();
+
+			var yyyy = new String(date.getFullYear());	
+			var mm = new String(date.getMonth()+1);
+			    if (mm.length < 2) mm = "0"+mm;
+			var dd = new String(date.getDate());
+			    if (dd.length < 2) dd = "0"+dd;
+
+			var hours = new String(date.getHours());
+			    if (hours.length < 2) hours = "0"+hours;
+			var minutes = new String(date.getMinutes());
+			    if (minutes.length < 2) minutes = "0"+minutes;
+			var seconds = new String(date.getSeconds());
+			    if (seconds.length < 2) seconds = "0"+seconds;
+
+			context.caches.log.dateString = yyyy+"."+mm+"."+dd;
+			context.caches.log.timeString = hours+":"+minutes+":"+seconds;
+		}
+
+		var path = context.settings.dir.log+context.caches.log.dateString;
+		text = "["+context.caches.log.timeString+"] "+text;
+
+		fs.appendFileSync(path, text+"\n");
+	}
+}
+
+function error(explanation, err) {
+	if (!err) {
+		return false;
+	}
+
+	var errorText = explanation+" ("+err+")";
+	log(errorText, 3);
+	process.exit(1);
+}
+
+function template(tmp, args) {
+	if (!context.caches.template) {
+		context.caches.template = {};
+	}
+	if (!context.caches.template[tmp]) {
+		try {
+			var path = context.settings.dir.templates+
+			           context.settings.display.templates+
+			           "/"+tmp+".html";
+			context.caches.template[tmp] = fs.readFileSync(path, "utf8");
+		} catch(err) {
+			error("Reading template file failed.", err);
+		}
+	}
+
+	var str = context.caches.template[tmp];
+
+	for (var i in args) {
+		if (args.hasOwnProperty(i)) {
+			str = str.replace("{"+i+"}",  args[i], "g");
+		}
+	}
+
+	str = "<!--Start of template "+template+"-->\n"+str;
+	str += "<!--End of template "+template+"-->\n";
+
+	return str;
+}
+
+function buildMenu(currentEntry) {
+	var pages = context.tree[0];
+
+	if (!pages) {
+		log("No pages available! Will not build website.");
+		return;
+	}
+
+	var htmlNav = "";
+	var current;
+	for (var i=0; i<pages.length; ++i) {
+		var page = pages[i];
+
+		if (currentEntry && currentEntry.slug == page.slug) {
+			current = "current";
+		} else {
+			current = "";
+		}
+
+		htmlNav += template("navEntry", {
+			"slug": page.slug,
+			"title": page.title,
+			"current": current
+		});
+	}
+
+	return template("menu", {
+		"title": context.settings.display.title,
+		"nav": htmlNav,
+	});
+}
+
+function parseEntry(entry) {
+	var entryText = entry.html;
+
+	var matches = entryText.match(/{.+}/);
+	if (matches) {
+		for (var i=0; i<matches.length; ++i) {
+			var match = matches[i]
+			    .replace("{", "")
+			    .replace("}", "")
+			    .replace(/\s+/g, "")
+			    .split(",");
+
+			if (!match[2]) {
+				match[2] = 1;
+			}
+
+			if (match[0] == "allposts") {
+				if (context.tree[match[2]]) {
+					for (var j=0; j<context.tree[match[2]].length; ++j) {
+						var entryToAdd = context.tree[match[2]];
+					}
+				} else {
+					log("Entry '"+entry.title+"' requested all entries with type "+match[2]+", but no entries with type "+match[2]+" was found.", 1);
+				}
+			}
+		}
+	}
+	return entryText;
+}
+
+function writeEntry(path, entry) {
+	log("Writing '"+entry.metadata.title+"' to "+path+"index.html.", 0);
+
+	++context.callbacks;
+	fs.mkdir(path, function(result, err) {
+		if (err && err.code != "EEXIST") {
+			error("Making entry dir failed.", err);
+		}
+
+		++context.callbacks;
+		fs.writeFile(path+"index.html", entry.html, function(err) {
+			error("Writing file to public dir failed.", err);
+			--context.callbacks;
+		});
+		--context.callbacks;
+	});
+}
