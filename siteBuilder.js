@@ -13,9 +13,19 @@ function log(text) {
 			fs.mkdirSync(context.settings.dir.log);
 
 		var date = new Date();
-		var dateString = date.getFullYear()+"."+(date.getMonth()+1)+"."+date.getDate();
 
-		fs.writeFileSync(context.settings.dir.log+dateString, text+"\n") ;
+		var yyyy = date.getFullYear();
+		var mm = date.getMonth()+1;
+		var dd = date.getDate();
+
+		var hours = date.getHours();
+		var minutes = date.getMinutes();
+		var seconds = date.getSeconds();
+
+		var path = context.settings.dir.log+yyyy+"."+mm+"."+dd;
+		text = "["+hours+":"+minutes+":"+seconds+"] "+text;
+
+		fs.appendFileSync(path, text+"\n");
 	}
 }
 
@@ -26,14 +36,21 @@ function error(explanation, err) {
 
 	var errorText = explanation+" ("+err+")";
 	log(errorText);
-	process.exit();
+	process.exit(1);
 }
 
-function template(template, args) {
-	try {
-		var str = fs.readFileSync(context.settings.dir.templates+context.settings.display.templates+"/"+template+".html", "utf8");
-	} catch(err) {
-		error("Error reading template file.", err);
+function template(template, args, directString) {
+	if (!directString) {
+		try {
+			var path = context.settings.dir.templates+
+			           context.settings.display.templates+
+			           "/"+template+".html";
+			var str = fs.readFileSync(path, "utf8");
+		} catch(err) {
+			error("Error reading template file.", err);
+		}
+	} else {
+		var str = template;
 	}
 
 	for (var i in args) {
@@ -41,9 +58,40 @@ function template(template, args) {
 	}
 
 	str = "<!--Start of template "+template+"-->\n"+str;
-	str += "<!--End of template "+template+"-->";
+	str += "<!--End of template "+template+"-->\n";
 
 	return str;
+}
+
+function buildMenu(currentEntry) {
+	var pages = context.tree[0];
+
+	if (!pages) {
+		log("No pages available! Will not build website.");
+		return;
+	}
+
+	var htmlNav = "";
+	for (var i=0; i<pages.length; ++i) {
+		var page = pages[i];
+
+		if (currentEntry && currentEntry.slug == page.slug) {
+			var current = "current";
+		} else {
+			var current = "";
+		}
+
+		htmlNav += template("navEntry", {
+			"slug": page.slug,
+			"title": page.title,
+			"current": current
+		});
+	}
+
+	return template("menu", {
+		"title": context.settings.display.title,
+		"nav": htmlNav,
+	});
 }
 
 async.series({
@@ -72,7 +120,7 @@ async.series({
 	},
 
 	"setupSql": function(next) {
-		fs.readFile("sqlsetup.txt", "utf8", function(err, data) {
+		fs.readFile("sqlSetup.txt", "utf8", function(err, data) {
 			error("Error reading SQL setup file.", err);
 
 			query = data.replace(/\{db\}/g, context.settings.mysql.database);
@@ -112,7 +160,9 @@ async.series({
 							error("Error deleting file", err);
 
 							//copy from media/ to public/media/
-							fs.createReadStream("media/"+file.name).pipe(fs.createWriteStream(context.settings.dir.out+"media/"+file.name));
+							fs.createReadStream("media/"+file.name).pipe(
+								fs.createWriteStream(context.settings.dir.out+"media/"+file.name)
+							);
 						}.bind(file));t
 					}
 				});
@@ -133,7 +183,7 @@ async.series({
 
 				//update HTML if it's not already updated
 				if (!entry.updated) {
-					log("HTML not updated for entry '"+entry.title+"'. Conveting from markdown...")
+					log("HTML not updated for entry '"+entry.title+"'. Conveting from markdown...");
 					entry.html = markdown.toHTML(entry.markdown);
 				}
 
@@ -158,39 +208,27 @@ async.series({
 		});
 	},
 
-	"buildMenu": function(next) {
-		var pages = context.tree[0];
-
-		if (!pages) {
-			log("No pages available! Will not build website.");
-			next();
-			return;
-		}
-
-		context.html = {}
-
-		var htmlNav = "";
-		for (var i=0; i<pages.length; ++i) {
-			var page = pages[i];
-
-			htmlNav += template("navEntry", {
-				"slug": page.slug,
-				"title": page.title
-			});
-		}
-
-		context.html.menu = template("menu", {
-			"title": context.settings.display.title,
-			"nav": htmlNav
-		});
-		next();
-	},
-
 	"buildHTML": function(next) {
-		if (!context.html) {
-			next();
-			return;
+		context.html = {};
+
+		for (var j=0; j<context.tree.length; ++j) {
+			for (var i=0; i<context.tree[j].length; ++i) {
+				var entry = context.tree[j][i];
+
+				var entryHTML = template("index", {
+					"title": entry.title+" - "+context.settings.display.title,
+					"menu": buildMenu(entry),
+					"content": entry.html
+				});
+
+				var path=context.settings.dir.out+entry.slug;
+
+				log("Writing '"+entry.title+"' to "+path);
+
+				fs.writeFile(path, entryHTML, function(err) {
+					error("Error writing file to public dir.", err);
+				});
+			}
 		}
-		console.log(context.html.menu);
 	}
 });
