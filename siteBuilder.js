@@ -273,8 +273,8 @@ function template(tmp, args) {
 		}
 	}
 
-	str = "<!--Start of template "+template+"-->\n"+str;
-	str += "<!--End of template "+template+"-->\n";
+	str = "<!--Start of template "+tmp+"-->\n"+str;
+	str += "<!--End of template "+tmp+"-->\n";
 
 	return str;
 }
