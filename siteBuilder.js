@@ -105,6 +105,43 @@ async.series({
 		});
 	},
 
+	"setupTheme": function(next) {
+		var path = context.settings.dir.themes+context.settings.display.theme+"/";
+
+		++context.callbacks;
+		fs.exists(path, function(exists) {
+			if (exists) {
+				++context.callbacks;
+				fs.readdir(path, function(err, result) {
+					error("Reading theme directory failed.", err);
+
+					var css = "";
+					for (var i=0; i<result.length; ++i) {
+						css += "/*Start of "+result[i]+"*/\n";
+						css += fs.readFileSync(path+result[i])+"\n";
+						css += "/*End of "+result[i]+"*/\n";
+					}
+
+					++context.callbacks;
+					fs.writeFile(context.settings.dir.out+"style.css", css, function(err) {
+						error("Writing CSS file failed.", err);
+						--context.callbacks;
+					});
+
+					--context.callbacks;
+				}.bind(path));
+				--context.callbacks;
+			}
+		}.bind(path));
+
+		//moving CSS files can also be done async.
+		next();
+	},
+
+	"setupAdmin": function(next) {
+		next();
+	},
+
 	"buildTree": function(next) {
 		context.tree = [];
 		++context.callbacks;
@@ -174,8 +211,12 @@ async.series({
 			path = context.settings.dir.out+entry.metadata.slug+"/";
 			writeEntry(path, entry);
 		}
-		path = context.settings.dir.out;
-		writeEntry(path, context.html[0]);
+		if (context.html[0]) {
+			path = context.settings.dir.out;
+			writeEntry(path, context.html[0]);
+		} else {
+			log("No entries to write.", 1);
+		}
 
 		next();
 	},
@@ -312,49 +353,51 @@ function buildMenu(currentEntry) {
 }
 
 function parseEntry(entry) {
-	var entryText = entry.html;
+	var entryText = template("entry", {
+		"title": entry.title,
+		"date": parseDate(entry.dateSeconds),
+		"content": entry.html
+	});
 
-	var matches = entryText.match(/{.+}/);
-	if (matches) {
-		for (var i=0; i<matches.length; ++i) {
-			var match = matches[i]
-			    .replace("{", "")
-			    .replace("}", "")
-			    .replace(/\s+/g, "")
-			    .split(",");
-
-			if (!match[2]) {
-				match[2] = 1;
-			}
-
-			if (match[0] == "allposts") {
-				if (context.tree[match[2]]) {
-					for (var j=0; j<context.tree[match[2]].length; ++j) {
-						var entryToAdd = context.tree[match[2]];
-					}
-				} else {
-					log("Entry '"+entry.title+"' requested all entries with type "+match[2]+", but no entries with type "+match[2]+" was found.", 1);
-				}
-			}
+	if (entry.allposts !== 0) {
+		var addString = "";
+		for (var i=0; i<context.tree[entry.allposts]; ++i) {
+			var addEntry = context.tree[entry.allposts][i]
+			addString += template("allposts", {
+				"content": template("entry", {
+					"title": addEntry.title,
+					"date": parseDate(addEntry.dateSeconds),
+					"content": addEntry.html
+				})
+			});
 		}
 	}
+
 	return entryText;
 }
 
-function writeEntry(path, entry) {
-	log("Writing '"+entry.metadata.title+"' to "+path+"index.html.", 0);
+function parseDate(seconds) {
+	return seconds;
+}
 
-	++context.callbacks;
-	fs.mkdir(path, function(result, err) {
-		if (err && err.code != "EEXIST") {
-			error("Making entry dir failed.", err);
-		}
+function writeEntry(path, entry) {
+	if (entry) {
+		log("Writing '"+entry.metadata.title+"' to "+path+"index.html.", 0);
 
 		++context.callbacks;
-		fs.writeFile(path+"index.html", entry.html, function(err) {
-			error("Writing file to public dir failed.", err);
+		fs.mkdir(path, function(result, err) {
+			if (err && err.code != "EEXIST") {
+				error("Making entry dir failed.", err);
+			}
+
+			++context.callbacks;
+			fs.writeFile(path+"index.html", entry.html, function(err) {
+				error("Writing file to public dir failed.", err);
+				--context.callbacks;
+			});
 			--context.callbacks;
 		});
-		--context.callbacks;
-	});
+	} else {
+		log("Couldn't write entry.", 2);
+	}
 }

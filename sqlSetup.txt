@@ -11,22 +11,24 @@ USE `{db}` ;
 CREATE TABLE IF NOT EXISTS `{db}`.`entries` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `html` TEXT NULL ,
-  `updated` BOOL NOT NULL DEFAULT false ,
+  `updated` BOOL NOT NULL DEFAULT FALSE ,
   `markdown` TEXT NOT NULL ,
   `title` VARCHAR(255) NOT NULL ,
   `slug` VARCHAR(255) NOT NULL ,
   `dateSeconds` INT NOT NULL ,
-  `display` BOOL NOT NULL ,
-  `comments` BOOL NOT NULL ,
+  `display` BOOL NOT NULL DEFAULT TRUE ,
+  `comments` BOOL NOT NULL DEFAULT TRUE ,
   `sort` INT NOT NULL DEFAULT 0 ,
-  `type` INT NOT NULL ,
+  `type` INT NOT NULL DEFAULT 0 ,
+  `allposts` INT NOT NULL DEFAULT 0 ,
+  `allpostsType` INT NOT NULL DEFAULT 0 ,
   PRIMARY KEY (`id`) )
 ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS `{db}`.`media` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(255) NOT NULL ,
-  `updated` BOOL NOT NULL DEFAULT false ,
+  `updated` BOOL NOT NULL DEFAULT FALSE ,
   PRIMARY KEY (`id`) )
 ENGINE = InnoDB;
 

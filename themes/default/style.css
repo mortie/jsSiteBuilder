@@ -1,0 +1,41 @@
+body {
+	background-color: #DDD;
+}
+
+#menu {
+	margin-top: 50px;
+}
+
+#menu .title,
+#menu .title:visited {
+	color: #666;
+	font-size: 14pt;
+	text-decoration: none;
+}
+
+#menu .nav li {
+	display: inline;
+}
+#menu .nav .button,
+#menu .nav .button:visited {
+	margin-left: 10px;
+	margin-right: 10px;
+
+	color: #000;
+	text-decoration: none;
+}
+#menu .nav .current {
+	background-color: #DDD;
+}
+
+.section {
+	background-color: #FFF;
+	padding: 5px;
+
+	margin-left: auto;
+	margin-right: auto;
+	width: 100%;
+	max-width: 500px;
+
+	margin-bottom: 10px;
+}
