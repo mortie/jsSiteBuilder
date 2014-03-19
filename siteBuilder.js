@@ -232,6 +232,152 @@ async.series({
 	}
 });
 
+function buildMenu(currentEntry) {
+	var pages = context.tree[0];
+
+	if (!pages) {
+		log("No pages available! Will not build website.");
+		return;
+	}
+
+	var htmlNav = "";
+	var current;
+	for (var i=0; i<pages.length; ++i) {
+		var page = pages[i];
+
+		if (currentEntry && currentEntry.slug == page.slug) {
+			current = "current";
+		} else {
+			current = "";
+		}
+
+		htmlNav += template("navEntry", {
+			"slug": page.slug,
+			"title": page.title,
+			"current": current
+		});
+	}
+
+	return template("menu", {
+		"title": context.settings.display.title,
+		"nav": htmlNav,
+	});
+}
+
+function parseEntry(entry) {
+	var entryText = "";
+
+	log("parsing "+entry.title, 0);
+
+	if (entry.allposts === 0) { //if allposts is 0, just output the entry itself
+		entryText = template("entry", {
+			"title": entry.title,
+			"date": parseDate(entry.dateSeconds),
+			"content": entry.html
+		});
+	} else {
+		var numEntries = context.tree[entry.allpostsType].length;
+		for (var i=0; i<numEntries; ++i) { //of not, loop through all entries requested by the entry...;
+			var addEntry = context.tree[entry.allpostsType][i];
+			log("Adding "+addEntry.title+" to "+entry.title+".", 0);
+
+			if (entry.allposts === 1) { //if allposts is 1, just add a link
+				var addEntryHTML = template("allpostsLink", {
+					"slug": addEntry.slug,
+					"title": addEntry.title
+				});
+			} else if (entry.allposts === 2) { //if allposts is 2, add a few paragraphs from the entry
+				var paragraphs = addEntry.html.split("</p>");
+				var addEntryText = "";
+				for (var j=0; j<=context.settings.allpostsShortLength; ++j) {
+					if (paragraphs[j]) {
+						addEntryText += paragraphs[j]+"</p>";
+					}
+				}
+
+				var addEntryHTML = template("allposts", {
+					"title": addEntry.title,
+					"slug": addEntry.slug,
+					"date": parseDate(addEntry.dateSeconds),
+					"content": addEntryText
+				});
+			} else if (entry.allposts === 3) { // if allposts is 3, add the whole entry
+				var addEntryHTML = template("allposts", {
+					"title": addEntry.title,
+					"slug": addEntry.slug,
+					"date": parseDate(addEntry.dateSeconds),
+					"content": addEntry.html
+				});
+			}
+			entryText += addEntryHTML;
+		}
+	}
+
+	if (entry.allposts === 1) {
+		return template("entry", {
+			"title": "",
+			"date": "",
+			"content": entryText
+		});
+	}
+	return entryText;
+}
+
+function parseDate(seconds) {
+	return seconds;
+}
+
+function writeEntry(path, entry) {
+	if (entry) {
+		log("Writing '"+entry.metadata.title+"' to "+path+"index.html.", 0);
+
+		++context.callbacks;
+		fs.mkdir(path, function(result, err) {
+			if (err && err.code != "EEXIST") {
+				error("Making entry dir failed.", err);
+			}
+
+			++context.callbacks;
+			fs.writeFile(path+"index.html", entry.html, function(err) {
+				error("Writing file to public dir failed.", err);
+				--context.callbacks;
+			});
+			--context.callbacks;
+		});
+	} else {
+		log("Couldn't write entry.", 2);
+	}
+}
+
+function template(tmp, args) {
+	if (!context.caches.template) {
+		context.caches.template = {};
+	}
+	if (!context.caches.template[tmp]) {
+		try {
+			var path = context.settings.dir.templates+
+			           context.settings.display.templates+
+			           "/"+tmp+".html";
+			context.caches.template[tmp] = fs.readFileSync(path, "utf8");
+		} catch(err) {
+			error("Reading template file failed.", err);
+		}
+	}
+
+	var str = context.caches.template[tmp];
+
+	for (var i in args) {
+		if (args.hasOwnProperty(i)) {
+			str = str.replace("{"+i+"}",  args[i], "g");
+		}
+	}
+
+	str = "<!--Start of template "+tmp+"-->\n"+str;
+	str += "<!--End of template "+tmp+"-->\n";
+
+	return str;
+}
+
 var errorGrades = [
 	"Infio  ",
 	"Notice ",
@@ -289,142 +435,4 @@ function error(explanation, err) {
 	var errorText = explanation+" ("+err+")";
 	log(errorText, 3);
 	process.exit(1);
-}
-
-function template(tmp, args) {
-	if (!context.caches.template) {
-		context.caches.template = {};
-	}
-	if (!context.caches.template[tmp]) {
-		try {
-			var path = context.settings.dir.templates+
-			           context.settings.display.templates+
-			           "/"+tmp+".html";
-			context.caches.template[tmp] = fs.readFileSync(path, "utf8");
-		} catch(err) {
-			error("Reading template file failed.", err);
-		}
-	}
-
-	var str = context.caches.template[tmp];
-
-	for (var i in args) {
-		if (args.hasOwnProperty(i)) {
-			str = str.replace("{"+i+"}",  args[i], "g");
-		}
-	}
-
-	str = "<!--Start of template "+tmp+"-->\n"+str;
-	str += "<!--End of template "+tmp+"-->\n";
-
-	return str;
-}
-
-function buildMenu(currentEntry) {
-	var pages = context.tree[0];
-
-	if (!pages) {
-		log("No pages available! Will not build website.");
-		return;
-	}
-
-	var htmlNav = "";
-	var current;
-	for (var i=0; i<pages.length; ++i) {
-		var page = pages[i];
-
-		if (currentEntry && currentEntry.slug == page.slug) {
-			current = "current";
-		} else {
-			current = "";
-		}
-
-		htmlNav += template("navEntry", {
-			"slug": page.slug,
-			"title": page.title,
-			"current": current
-		});
-	}
-
-	return template("menu", {
-		"title": context.settings.display.title,
-		"nav": htmlNav,
-	});
-}
-
-function parseEntry(entry) {
-	var entryText = "";
-
-	if (entry.allposts === 0) {
-		entryText = template("entry", {
-			"title": entry.title,
-			"date": parseDate(entry.dateSeconds),
-			"content": entry.html
-		});
-	} else {
-		for (var i=0; i<context.tree[entry.allposts]; ++i) {
-			var addEntry = context.tree[entry.allposts][i];
-			log("Adding "+addEntry.title+" to "+entry.title+".", 0);
-
-			if (entry.allposts === 1) {
-				var addEntryHTML = template("allpostsLink", {
-					"slug": addEntry.slug,
-					"title": addEntry.title
-				});
-			} else if (entry.allposts === 2) {
-				var paragraphs = addEntry.html.split("</p>");
-				var addEntryText;
-				for (var i=0; i<=context.settings.allpostsShortLength; ++i) {
-					addEntryText += paragraphs[i]+"</p>";
-				}
-				var addEntryHTML = template("entry", {
-					"title": addEntry.title,
-					"date": parseDate(addEntry.date),
-					"content": addEntryText
-				});
-			} else if (entry.allposts === 3) {
-				var addEntryHTML = template("entry", {
-					"title": addEntry.title,
-					"date": parseDate(addEntry.date),
-					"content": addEntry.html
-				});
-			}
-			entryString += addEntryHTML;
-		}
-	}
-
-	if (entry.allposts === 1) {
-		return template("entry", {
-			"title": "",
-			"date": "",
-			"content": entryString
-		});
-	}
-	return entryText;
-}
-
-function parseDate(seconds) {
-	return seconds;
-}
-
-function writeEntry(path, entry) {
-	if (entry) {
-		log("Writing '"+entry.metadata.title+"' to "+path+"index.html.", 0);
-
-		++context.callbacks;
-		fs.mkdir(path, function(result, err) {
-			if (err && err.code != "EEXIST") {
-				error("Making entry dir failed.", err);
-			}
-
-			++context.callbacks;
-			fs.writeFile(path+"index.html", entry.html, function(err) {
-				error("Writing file to public dir failed.", err);
-				--context.callbacks;
-			});
-			--context.callbacks;
-		});
-	} else {
-		log("Couldn't write entry.", 2);
-	}
 }
