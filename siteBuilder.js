@@ -7,6 +7,7 @@ var mysql = require('mysql');
 var fs = require('fs');
 var async = require('async');
 var markdown = require('markdown').markdown;
+var wrench = require('wrench');
 
 async.series({
 	"getSettings": function(next) {
@@ -138,7 +139,9 @@ async.series({
 		next();
 	},
 
-	"setupAdmin": function(next) {
+	"setupAdwin": function(next) {
+		wrench.rmdirSyncRecursive(context.settings.dir.out+"admin");
+		wrench.copyDirSyncRecursive("admin", context.settings.dir.out+"admin");
 		next();
 	},
 
