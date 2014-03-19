@@ -353,26 +353,53 @@ function buildMenu(currentEntry) {
 }
 
 function parseEntry(entry) {
-	var entryText = template("entry", {
-		"title": entry.title,
-		"date": parseDate(entry.dateSeconds),
-		"content": entry.html
-	});
+	var entryText = "";
 
-	if (entry.allposts !== 0) {
-		var addString = "";
+	if (entry.allposts === 0) {
+		entryText = template("entry", {
+			"title": entry.title,
+			"date": parseDate(entry.dateSeconds),
+			"content": entry.html
+		});
+	} else {
 		for (var i=0; i<context.tree[entry.allposts]; ++i) {
-			var addEntry = context.tree[entry.allposts][i]
-			addString += template("allposts", {
-				"content": template("entry", {
+			var addEntry = context.tree[entry.allposts][i];
+			log("Adding "+addEntry.title+" to "+entry.title+".", 0);
+
+			if (entry.allposts === 1) {
+				var addEntryHTML = template("allpostsLink", {
+					"slug": addEntry.slug,
+					"title": addEntry.title
+				});
+			} else if (entry.allposts === 2) {
+				var paragraphs = addEntry.html.split("</p>");
+				var addEntryText;
+				for (var i=0; i<=context.settings.allpostsShortLength; ++i) {
+					addEntryText += paragraphs[i]+"</p>";
+				}
+				var addEntryHTML = template("entry", {
 					"title": addEntry.title,
-					"date": parseDate(addEntry.dateSeconds),
+					"date": parseDate(addEntry.date),
+					"content": addEntryText
+				});
+			} else if (entry.allposts === 3) {
+				var addEntryHTML = template("entry", {
+					"title": addEntry.title,
+					"date": parseDate(addEntry.date),
 					"content": addEntry.html
-				})
-			});
+				});
+			}
+			entryString += addEntryHTML;
 		}
 	}
 
+	if (entry.allposts === 1) {
+		return template("entry", {
+			"title": "",
+			"date": "",
+			"content": entryString
+		});
+	}
 	return entryText;
 }
 
