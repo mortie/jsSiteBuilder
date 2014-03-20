@@ -139,9 +139,12 @@ async.series({
 		next();
 	},
 
-	"setupAdwin": function(next) {
-		wrench.rmdirSyncRecursive(context.settings.dir.out+"admin");
-		wrench.copyDirSyncRecursive("admin", context.settings.dir.out+"admin");
+	"setupAdmin": function(next) {
+		error("Copying hidden admin dir to public dir failed.",
+			wrench.copyDirSyncRecursive("admin", context.settings.dir.out+"admin", {
+				"forceDelete": true
+			}), true
+		);
 		next();
 	},
 
@@ -272,7 +275,7 @@ function parseEntry(entry) {
 
 	log("parsing "+entry.title, 0);
 
-	if (entry.allposts === 0) { //if allposts is 0, just output the entry itself
+	if (!entry.allposts) { //if allposts is 0, just output the entry itself
 		entryText = template("entry", {
 			"title": entry.title,
 			"date": parseDate(entry.dateSeconds),

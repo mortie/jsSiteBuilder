@@ -1,1 +1,1 @@
-This is a thing.
+<a href="?p=entries">Entries</a>

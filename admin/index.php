@@ -12,12 +12,24 @@
 		$settings->mysql->database
 	);
 
-	if (!empty($_GET['p'])) {
-		$page = $_GET['p'];
-	} else {
-		$page = "index";
+	$navBar = [];
+	function addNav($text) {
+		global $navBar;
+		array_push($navBar, $text);
 	}
 
-	include("templates/start.html");
-	include("pages/".$page.".php");
-	include("templates/end.html");
+	addNav("<a href='.'><button>Home</button></a>");
+
+	if (!empty($_GET['s'])) {
+		include("scripts/".$_GET['s'].".php");
+	} else {
+		if (!empty($_GET['p'])) {
+			$page = $_GET['p'];
+		} else {
+			$page = "index";
+		}
+
+		include("templates/start.html");
+		include("pages/$page.php");
+		include("templates/end.html");
+	}
