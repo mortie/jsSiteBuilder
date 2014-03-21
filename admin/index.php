@@ -18,7 +18,7 @@
 		array_push($navBar, $text);
 	}
 
-	addNav("<a href='.'><button>Home</button></a>");
+	addNav("<a href='/'><button>Home</button></a>");
 
 	if (!empty($_GET['s'])) {
 		include("scripts/".$_GET['s'].".php");
