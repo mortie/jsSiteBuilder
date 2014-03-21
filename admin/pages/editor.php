@@ -34,6 +34,15 @@
 		return document.getElementById(name);
 	}
 
+	function getRadio(name) {
+		var radios = document.getElementsByName(name);
+		for (var i=0; i<radios.length; ++i) {
+			if (radios[i].checked) {
+				return radios[i];
+			}
+		}
+	}
+
 	function prepareForm() {
 		getDoc("formMarkdown").value = getDoc("textarea").value;
 		getDoc("formSlug").value = getDoc("slug").value;
@@ -41,15 +50,9 @@
 		if (usedEditor == "text") {
 			getDoc("formAllposts").value = 0;
 		} else {
-			var radios = document.getElementsByName("allposts");
-			for (var i = 0, length = radios.length; i < length; i++) {
-				if (radios[i].checked) {
-					getDoc("formAllposts").value = radios[i].value;
-					break;
-				}
-			}
+			getDoc("formAllposts").value = getRadio("allposts").value;
 		}
-		getDoc("formType").value = getDoc("type").value;
+		getDoc("formType").value = getRadio("type").value; 
 		getDoc("formAllpostsType").value = getDoc("allpostsType").value;
 	}
 </script>
@@ -75,10 +78,13 @@
 </div>
 
 <div class="section">
+<label><input type="radio" name="type" value="0" <?php if ($entry['type'] == 0) echo "checked" ?>>Page</label><br>
+	<label><input type="radio" name="type" value="1" <?php if ($entry['type'] == 1) echo "checked" ?>>Post</label>
+</div>
+
+<div class="section">
 	<label><input type="radio" name="allpostsType" onclick="useEditor('text')" <?php if ($entry['allposts'] == 0) echo "checked" ?>>Entry</label>
 	<label><input type="radio" name="allpostsType" onclick="useEditor('allposts')" <?php if ($entry['allposts'] != 0) echo "checked" ?>>List</label><br>
-
-	<label>Type: <input id="type" type="number" value="<?=$entry['type'] ?>"></label>
 
 	<div id="textEditor">
 		<textarea id="textarea"><?=$entry['markdown'] ?></textarea>
