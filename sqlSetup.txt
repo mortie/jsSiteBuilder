@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS `{db}`.`entries` (
   `slug` VARCHAR(255) NOT NULL ,
   `dateSeconds` INT NOT NULL ,
   `display` BOOL NOT NULL DEFAULT TRUE ,
-  `comments` BOOL NOT NULL DEFAULT TRUE ,
   `sort` INT NOT NULL DEFAULT 0 ,
   `type` INT NOT NULL DEFAULT 0 ,
   `allposts` INT NOT NULL DEFAULT 0 ,

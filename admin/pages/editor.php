@@ -7,13 +7,16 @@
 			"title"=>"",
 			"slug"=>"",
 			"allposts"=>0,
+			"allpostsType"=>1,
 			"markdown"=>"",
-			"id"=>""
+			"id"=>"",
+			"type"=>0,
 		];
 	}
 ?>
 
 <script>
+	var usedEditor;
 	function useEditor(editor) {
 		var text = document.getElementById("textEditor");
 		var allposts = document.getElementById("allpostsEditor");
@@ -24,46 +27,74 @@
 			text.style.display = "none";
 			allposts.style.display = "";
 		}
+		usedEditor = editor;
 	}
 
-	function updateTextEditorContent() {
-		var input = document.getElementById("textEditorContent");
-		var div = document.getElementById("textEditor");
-		input.value = div.innerText || div.textContent;
+	function getDoc(name) {
+		return document.getElementById(name);
+	}
+
+	function prepareForm() {
+		getDoc("formMarkdown").value = getDoc("textarea").value;
+		getDoc("formSlug").value = getDoc("slug").value;
+		getDoc("formTitle").value = getDoc("title").value;
+		if (usedEditor == "text") {
+			getDoc("formAllposts").value = 0;
+		} else {
+			var radios = document.getElementsByName("allposts");
+			for (var i = 0, length = radios.length; i < length; i++) {
+				if (radios[i].checked) {
+					getDoc("formAllposts").value = radios[i].value;
+					break;
+				}
+			}
+		}
+		getDoc("formType").value = getDoc("type").value;
+		getDoc("formAllpostsType").value = getDoc("allpostsType").value;
 	}
 </script>
 
 <form id="form" method="post" action="?s=updateEntry">
-	<div class="section">
-		Title:
-		<input name="title" type="text" class="wide" value="<?=$entry['title'] ?>">
-	</div>
-
-	<div class="section">
-		Slug:
-		<input name="slug" type="text" class="wide" value="<?=$entry['slug'] ?>">
-	</div>
-
-	<input type="hidden" name="id" value="<?=$entry['id'] ?>">
-
-	<div class="section">
-	<label><input type="radio" name="pageOrPost" onclick="useEditor('text')" <?php if ($entry['allposts'] == 0) echo "checked" ?>>Entry</label>
-	<label><input type="radio" name="pageOrPost" onclick="useEditor('allposts') <?php if ($entry['allposts'] != 0) echo "checked" ?>">List</label>
-
-		<div id="textEditor">
-			<div id="textarea" contenteditable="true"><?=$entry['markdown'] ?></div>
-			<input type="hidden" name="markdown" id="textEditorContent">
-		</div>
-
-		<div id="allpostsEditor">
-			<br>
-			List type:<br>
-			<label><input type="radio" name="allposts" value="1" <?php if ($entry['allposts'] == 1) echo "checked" ?>>Link</label><br>
-			<label><input type="radio" name="allposts" value="2" <?php if ($entry['allposts'] == 2) echo "checked" ?>>Short</label><br>
-			<label><input type="radio" name="allposts" value="3" <?php if ($entry['allposts'] == 3) echo "checked" ?>>Full</label><br>
-		</div>
-	</div>
+	<textarea id="formMarkdown" style="display: none" name="markdown"></textarea>
+	<input id="formSlug" type="hidden" name="slug">
+	<input id="formTitle" type="hidden" name="title">
+	<input id="formId" type="hidden" name="id" value="<?=$entry['id'] ?>">
+	<input id="formAllposts" type="hidden" name="allposts">
+	<input id="formAllpostsType" type="hidden" name="allpostsType">
+	<input id="formType" type="hidden" name="type">
 </form>
+
+<div class="section">
+	Title:
+	<input id="title" type="text" class="wide" value="<?=$entry['title'] ?>">
+</div>
+
+<div class="section">
+	Slug:
+	<input id="slug" type="text" class="wide" value="<?=$entry['slug'] ?>">
+</div>
+
+<div class="section">
+	<label><input type="radio" name="allpostsType" onclick="useEditor('text')" <?php if ($entry['allposts'] == 0) echo "checked" ?>>Entry</label>
+	<label><input type="radio" name="allpostsType" onclick="useEditor('allposts')" <?php if ($entry['allposts'] != 0) echo "checked" ?>>List</label><br>
+
+	<label>Type: <input id="type" type="number" value="<?=$entry['type'] ?>"></label>
+
+	<div id="textEditor">
+		<textarea id="textarea"><?=$entry['markdown'] ?></textarea>
+	</div>
+
+	<div id="allpostsEditor">
+		<br>
+		List:<br>
+		<label><input type="radio" name="allposts" value="1" <?php if ($entry['allposts'] == 1) echo "checked" ?>>Link</label><br>
+		<label><input type="radio" name="allposts" value="2" <?php if ($entry['allposts'] == 2) echo "checked" ?>>Short</label><br>
+		<label><input type="radio" name="allposts" value="3" <?php if ($entry['allposts'] == 3) echo "checked" ?>>Full</label><br>
+
+		<label>List entries of type:<input type="number" id="allpostsType" value="<?=$entry['allpostsType'] ?>"></label>
+	</div>
+</div>
+
 
 <script>
 	if (<?=$entry['allposts'] ?> == 0) {
@@ -83,5 +114,5 @@
 
 <?php
 	addNav("<a href='?p=entries'><button>Back</button></a>");
-	addNav("<button onclick=\"updateTextEditorContent(); document.getElementById('form').submit()\">Submit</button>");
-
+	addNav("<button onclick=\"prepareForm(); document.getElementById('form').submit()\">Submit</button>");
+	addNav("<a href='?s=deleteEntry&id=".$entry['id']."'><button>Delete</button></a>");

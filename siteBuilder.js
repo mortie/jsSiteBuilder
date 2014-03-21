@@ -281,7 +281,7 @@ function parseEntry(entry) {
 			"date": parseDate(entry.dateSeconds),
 			"content": entry.html
 		});
-	} else {
+	} else if (context.tree[entry.allpostsType]) {
 		var numEntries = context.tree[entry.allpostsType].length;
 		for (var i=0; i<numEntries; ++i) { //of not, loop through all entries requested by the entry...;
 			var addEntry = context.tree[entry.allpostsType][i];

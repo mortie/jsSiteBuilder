@@ -1,15 +1,20 @@
 <?php
-	$entry = [
-		"markdown"=>$mysqli->real_escape_string($_POST['markdown']),
-		"updated"=>false,
-		"slug"=>$mysqli->real_escape_string($_POST['slug']),
-		"title"=>$mysqli->real_escape_string($_POST['title']),
-		"id"=>$mysqli->real_escape_string($_POST['id'])
-	];
+	$eMarkdown = $mysqli->real_escape_string($_POST['markdown']);
+	$eSlug = $mysqli->real_escape_string($_POST['slug']);
+	$eTitle = $mysqli->real_escape_string($_POST['title']);
+	$eId = $mysqli->real_escape_string($_POST['id']);
+	$eType = $mysqli->real_escape_string($_POST['type']);
 	if (empty($_POST['allposts'])) {
-		$entry['allposts'] = 0;
+		$eAllposts = 0;
 	} else {
-		$entry['allposts'] = $mysqli->real_escape_string($S_POST['allposts']);
+		$eAllposts = $mysqli->real_escape_string($_POST['allposts']);
 	}
+	$eAllpostsType = $mysqli->real_escape_string($_POST['allpostsType']);
 
-	if (!)
+	if ($eId == "") {
+		$mysqli->query("INSERT INTO entries (markdown, updated, slug, title, allposts, allpostsType, type) VALUES ('$eMarkdown', FALSE, '$eSlug', '$eTitle', '$eAllposts', '$allpostsType', '$eType')");
+		header("Location: ?p=editor&id=".$mysqli->insert_id);
+	} else {
+		$mysqli->query("UPDATE entries SET markdown='$eMarkdown', updated=FALSE, slug='$eSlug', title='$eTitle', allposts='$eAllposts', allpostsType='$eAllpostsType', type='$eType' WHERE id=$eId");
+		header("Location: ?p=editor&id=$eId");
+	}

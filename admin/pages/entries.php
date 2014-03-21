@@ -2,7 +2,13 @@
 	$entries = $mysqli->query("SELECT * FROM entries ORDER BY type, sort, dateSeconds");
 
 	while ($entry = $entries->fetch_assoc()) {
-		echo "<a href='?p=editor&id=".$entry['id']."'>".$entry['title']."</a><br>";
+		if ($entry['type'] == 0) {
+			$type = "page";
+		} else {
+			$type = "post";
+		}
+		$type = "<span style='display: inline-block; width: 70px'>[$type]</span>";
+		echo "$type<a href='?p=editor&id=".$entry['id']."'>".$entry['title']."</a><br>\n";
 	}
 
 	addNav("<a href='admin'><button>Back</button></a>");
