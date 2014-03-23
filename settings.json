@@ -18,7 +18,7 @@
 		"theme": "default",
 		"templates": "default"
 	},
-	"allpostsShortLength": 2,
+	"allpostsShortLength": 4,
 	"logToFile": true,
 	"nodeCommand": "nodejs"
 }

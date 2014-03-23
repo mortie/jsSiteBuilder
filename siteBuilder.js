@@ -151,7 +151,7 @@ async.series({
 	"buildTree": function(next) {
 		context.tree = [];
 		++context.callbacks;
-		context.connection.query("SELECT * FROM entries ORDER BY sort, dateSeconds", function(err, result) {
+		context.connection.query("SELECT * FROM entries ORDER BY sort, dateSeconds DESC", function(err, result) {
 			error("Querying database failed.", err);
 
 			for (var i=0; i<result.length; ++i) {
