@@ -1,0 +1,22 @@
+{
+	"mysql": {
+		"host": "localhost",
+		"user": "root",
+		"password": "",
+		"database": "jsSiteBuilder"
+	},
+	"dir": {
+		"out": "public/",
+		"themes": "themes/",
+		"templates": "templates/",
+		"log": "logs/"
+	},
+	"display": {
+		"title": "Test Site",
+		"theme": "default",
+		"templates": "default"
+	},
+	"allpostsShortLength": 2,
+	"logToFile": true
+}
+
