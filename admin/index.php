@@ -8,6 +8,8 @@
 	$root = "../../";
 	$settings = json_decode(file_get_contents($root."settings.json"));
 
+	date_default_timezone_set($settings->timeZone);
+
 	$mysqli = new mysqli(
 		$settings->mysql->host,
 		$settings->mysql->user,
@@ -63,3 +65,4 @@
 		include("pages/$page.php");
 		include("templates/end.html");
 	}
+

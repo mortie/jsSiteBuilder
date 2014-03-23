@@ -1,5 +1,6 @@
 {
 	"adminPass": "",
+	"timeZone": "Europe/Oslo",
 	"mysql": {
 		"host": "localhost",
 		"user": "root",
@@ -18,6 +19,7 @@
 		"templates": "default"
 	},
 	"allpostsShortLength": 2,
-	"logToFile": true
+	"logToFile": true,
+	"nodeCommand": "nodejs"
 }
 
