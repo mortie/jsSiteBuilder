@@ -1,4 +1,6 @@
 <?php
+	requirePassword();
+
 	if (!empty($_GET['id'])) {
 		$id = $mysqli->real_escape_string($_GET['id']);
 		$entry = $mysqli->query("SELECT * FROM entries WHERE id='$id'")->fetch_assoc();

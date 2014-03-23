@@ -3,7 +3,10 @@
 	ini_set('display_errors',1);
 	error_reporting(-1);
 
-	$settings = json_decode(file_get_contents("../../settings.json"));
+	session_start();
+
+	$root = "../../";
+	$settings = json_decode(file_get_contents($root."settings.json"));
 
 	$mysqli = new mysqli(
 		$settings->mysql->host,
@@ -16,6 +19,33 @@
 	function addNav($text) {
 		global $navBar;
 		array_push($navBar, $text);
+	}
+
+	function requirePassword() {
+		if ($_SESSION['authorized'] === true) {
+			return true;
+		} else {
+			header("Location: ?p=login");
+			die();
+		}
+	}
+
+	function message($message) {
+		if (empty($_SESSION['messagee'])) {
+			$_SESSION['message'] = $message;
+		} else {
+			$_SESSION['message'] += "<br>$message";
+		}
+	}
+
+	function getMessage() {
+		if (empty($_SESSION['message'])) {
+			$str = "";
+		} else {
+			$str = $_SESSION['message'];
+		}
+		$_SESSION['message'] = "";
+		return $str;
 	}
 
 	addNav("<a href='/'><button>Home</button></a>");

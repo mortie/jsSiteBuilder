@@ -1,4 +1,6 @@
 <?php
+	requirePassword();
+
 	$eMarkdown = $mysqli->real_escape_string($_POST['markdown']);
 	$eSlug = $mysqli->real_escape_string($_POST['slug']);
 	$eTitle = $mysqli->real_escape_string($_POST['title']);
