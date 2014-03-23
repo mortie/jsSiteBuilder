@@ -32,6 +32,26 @@ body {
 	transform: translateX(-1px);
 	border-style: solid;
 
-	white-space: pre-wrap;
-	overflow-y: scroll;
+	whitedth: 45%;
+	display: inline-block;
+	text-align: right;
+}
+
+.subtitle {
+	font-weight: bold;
+	margin-top: 20px;
+}
+
+.table .key {
+	display: inline-block;
+	width: 240px;
+	display: inline-block;
+}
+.table .val {
+	display: inline-block;
+	width: 60%;
+	display: inline-block;
+}
+.table input {
+	width: 100%;
 }
