@@ -191,6 +191,9 @@ async.series({
 		context.html = [];
 
 		for (var i=0; i<context.tree.length; ++i) {
+			if (!context.tree[i]) {
+				continue;
+			}
 			for (var j=0; j<context.tree[i].length; ++j) {
 				var entry = context.tree[i][j];
 

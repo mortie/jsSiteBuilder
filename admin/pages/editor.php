@@ -97,8 +97,8 @@
 </div>
 
 <div class="section">
-	<label><input type="radio" name="allpostsType" onclick="useEditor('text')" <?php if ($entry['allposts'] == 0) echo "checked" ?>>Entry</label>
-	<label><input type="radio" name="allpostsType" onclick="useEditor('allposts')" <?php if ($entry['allposts'] != 0) echo "checked" ?>>List</label><br>
+	<label><input type="radio" name="allpostsKind" onclick="useEditor('text')" <?php if ($entry['allposts'] == 0) echo "checked" ?>>Entry</label>
+	<label><input type="radio" name="allpostsKind" onclick="useEditor('allposts')" <?php if ($entry['allposts'] != 0) echo "checked" ?>>List</label><br>
 
 	<div id="textEditor">
 		<textarea id="textarea"><?=$entry['markdown'] ?></textarea>
@@ -114,7 +114,7 @@
 
 		<div class="selection">
 			List entries of type:
-			<select>
+			<select id="allpostsType">
 <option value='0'>Page</option>
 <?php
 	$types = $mysqli->query("SELECT * FROM types");
