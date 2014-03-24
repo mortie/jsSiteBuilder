@@ -24,6 +24,12 @@ CREATE TABLE IF NOT EXISTS `{db}`.`entries` (
   PRIMARY KEY (`id`) )
 ENGINE = InnoDB;
 
+CREATE TABLE IF NOT EXISTS `{db}`.`types` (
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `name` VARCHAR(60) NOT NULL ,
+  PRIMARY KEY (`id`) )
+ENGINE = InnoDB;
+
 CREATE TABLE IF NOT EXISTS `{db}`.`media` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(255) NOT NULL ,

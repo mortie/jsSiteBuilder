@@ -2,5 +2,5 @@
 	requirePassword();
 ?>
 <a href="?p=entries">Entries</a><br>
-<a href="?p=settings">Settings</a>
-
+<a href="?p=settings">Settings</a><br>
+<a href="?p=postTypes">Post Types</a>

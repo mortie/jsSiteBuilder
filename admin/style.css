@@ -32,9 +32,8 @@ body {
 	transform: translateX(-1px);
 	border-style: solid;
 
-	whitedth: 45%;
-	display: inline-block;
-	text-align: right;
+	display: block;
+	position: relative;
 }
 
 .subtitle {
@@ -51,6 +50,10 @@ body {
 	display: inline-block;
 	width: 60%;
 	display: inline-block;
+}
+.table .desc {
+	font-size: 10pt;
+	margin-bottom: 10px;
 }
 .table input {
 	width: 100%;

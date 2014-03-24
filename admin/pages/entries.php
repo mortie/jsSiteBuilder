@@ -5,11 +5,11 @@
 
 	while ($entry = $entries->fetch_assoc()) {
 		if ($entry['type'] == 0) {
-			$type = "page";
+			$type = "Page";
 		} else {
-			$type = "post";
+			$type = $mysqli->query("SELECT * FROM types WHERE id=".$entry['type'])->fetch_assoc()['name'];
 		}
-		$type = "<span style='display: inline-block; width: 70px'>[$type]</span>";
+		$type = "<span style='display: inline-block; width: 70px'>$type</span>";
 		echo "$type<a href='?p=editor&id=".$entry['id']."'>".$entry['title']."</a><br>\n";
 	}
 

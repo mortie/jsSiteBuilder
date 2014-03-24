@@ -50,6 +50,16 @@
 		return $str;
 	}
 
+	function template($file, $args=[]) {
+		$str = file_get_contents("templates/$file.html");
+
+		foreach ($args as $key=>$val) {
+			$str = str_replace("{".$key."}", $val, $str);
+		}
+
+		return $str;
+	}
+
 	addNav("<a href='/'><button>Home</button></a>");
 
 	if (!empty($_GET['s'])) {
@@ -61,8 +71,8 @@
 			$page = "index";
 		}
 
-		include("templates/start.html");
+		include("templates/start.php");
 		include("pages/$page.php");
-		include("templates/end.html");
+		include("templates/end.php");
 	}
 

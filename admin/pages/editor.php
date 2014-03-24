@@ -54,7 +54,7 @@
 		} else {
 			getDoc("formAllposts").value = getRadio("allposts").value;
 		}
-		getDoc("formType").value = getRadio("type").value; 
+		getDoc("formType").value = getDoc("type").value; 
 		getDoc("formAllpostsType").value = getDoc("allpostsType").value;
 	}
 </script>
@@ -80,8 +80,20 @@
 </div>
 
 <div class="section">
-<label><input type="radio" name="type" value="0" <?php if ($entry['type'] == 0) echo "checked" ?>>Page</label><br>
-	<label><input type="radio" name="type" value="1" <?php if ($entry['type'] == 1) echo "checked" ?>>Post</label>
+	<select id="type">
+<option value='0'>Page</option>
+<?php
+	$types = $mysqli->query("SELECT * FROM types");
+	while ($type = $types->fetch_assoc()) {
+		if ($entry['type'] == $type['id']) {
+			$selected = "selected";
+		} else {
+			$selected = "";
+		}
+		echo "<option value='".$type['id']."' $selected>".$type['name']."</option>\n";
+	}
+?>
+	</select>
 </div>
 
 <div class="section">
@@ -93,13 +105,30 @@
 	</div>
 
 	<div id="allpostsEditor">
-		<br>
+		<div class="section">
 		List:<br>
-		<label><input type="radio" name="allposts" value="1" <?php if ($entry['allposts'] == 1) echo "checked" ?>>Link</label><br>
-		<label><input type="radio" name="allposts" value="2" <?php if ($entry['allposts'] == 2) echo "checked" ?>>Short</label><br>
-		<label><input type="radio" name="allposts" value="3" <?php if ($entry['allposts'] == 3) echo "checked" ?>>Full</label><br>
+			<label><input type="radio" name="allposts" value="1" <?php if ($entry['allposts'] == 1) echo "checked" ?>>Link</label><br>
+			<label><input type="radio" name="allposts" value="2" <?php if ($entry['allposts'] == 2) echo "checked" ?>>Short</label><br>
+			<label><input type="radio" name="allposts" value="3" <?php if ($entry['allposts'] == 3) echo "checked" ?>>Full</label>
+		</div>
 
-		<label>List entries of type:<input type="number" id="allpostsType" value="<?=$entry['allpostsType'] ?>"></label>
+		<div class="selection">
+			List entries of type:
+			<select>
+<option value='0'>Page</option>
+<?php
+	$types = $mysqli->query("SELECT * FROM types");
+	while ($type = $types->fetch_assoc()) {
+		if ($entry['allpostsType'] == $type['id']) {
+			$selected = "selected";
+		} else {
+			$selected = "";
+		}
+		echo "<option value='".$type['id']."' $selected>".$type['name']."</option>\n";
+	}
+?>
+			</select>
+		</div>
 	</div>
 </div>
 

@@ -5,39 +5,36 @@
 	addNav("<button onclick='document.getElementById(\"form\").submit();'>Submit</button>");
 
 	$names = [
-		"adminPass"=>["Admin Password"],
-		"timeZone"=>["Time Zone"],
-		"allpostsShortLength"=>["Length of Short List"],
+		"adminPass"=>"Admin Password",
+		"timeZone"=>"Time Zone",
+		"allpostsShortLength"=>"Short List Length",
 		"logToFile"=>false,
-		"nodeCommand"=>["Node.js Command"],
+		"nodeCommand"=>"Node.js Command",
 		
-		"mysql"=>["MySQL"],
-		"mysql->host"=>["Hostname"],
-		"mysql->user"=>["Username"],
-		"mysql->password"=>["Password"],
-		"mysql->database"=>["Database Name"],
+		"mysql"=>"MySQL",
+		"mysql->host"=>"Hostname",
+		"mysql->user"=>"Username",
+		"mysql->password"=>"Password",
+		"mysql->database"=>"Database Name",
 
-		"display"=>["Display"],
-		"display->title"=>["Title"],
-		"display->theme"=>["Theme"],
-		"display->templates"=>["Template"]
+		"display"=>"Display",
+		"display->title"=>"Title",
+		"display->theme"=>"Theme",
+		"display->templates"=>"Template"
 	];
 
 	function printSetting($key, $val, $parent=false) {
 		global $names;
-		echo "<div class='key'>\n";
 		if ($parent === false) {
-			echo $names[$key][0];
+			$name = $key;
 		} else {
-			echo $names["$parent->$key"][0];
+			$name = "$parent->$key";
 		}
-		echo "</div><div class='val'>\n";
-		if ($parent === false) {
-			echo "<input type='text' name='$key' value='$val'>\n";
-		} else {
-			echo "<input type='text' name='$parent->$key' value='$val'>\n";
-		}
-		echo "</div>\n";
+		echo template("settingsListEntry", [
+			"displayName"=>$names[$name],
+			"name"=>$name,
+			"value"=>$val,
+		]);
 	}
 ?>
 
@@ -52,7 +49,7 @@
 
 	foreach ($settings as $key=>$val) {
 		if (is_object($val) && array_key_exists($key, $names)) {
-			echo "<div class='subtitle'>".$names[$key][0]."</div>\n";
+			echo "<div class='subtitle'>".$names[$key]."</div>\n";
 			foreach ($val as $subkey=>$subval) {
 				printSetting($subkey, $subval, $key);
 			}
