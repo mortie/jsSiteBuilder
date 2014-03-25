@@ -2,8 +2,8 @@
 	requirePassword();
 
 	$eMarkdown = $mysqli->real_escape_string($_POST['markdown']);
-	$eSlug = $mysqli->real_escape_string($_POST['slug']);
-	$eTitle = $mysqli->real_escape_string($_POST['title']);
+	$eSlug = $mysqli->real_escape_string(htmlentities($_POST['slug']));
+	$eTitle = $mysqli->real_escape_string(htmlentities($_POST['title']));
 	$eId = $mysqli->real_escape_string($_POST['id']);
 	$eType = $mysqli->real_escape_string($_POST['type']);
 	$eSort = $mysqli->real_escape_string($_POST['sort']);

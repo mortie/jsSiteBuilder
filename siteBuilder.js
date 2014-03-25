@@ -304,16 +304,22 @@ function parseEntry(entry) {
 					}
 				}
 
-				var addEntryHTML = template("allposts", {
-					"title": addEntry.title,
-					"slug": addEntry.slug,
+				var addEntryHTML = template("entry", {
+					"title": template("link", {
+						"title": addEntry.title,
+						"url": "/"+addEntry.slug
+					}),
 					"date": parseDate(addEntry.dateSeconds),
-					"content": addEntryText
+					"content": addEntryText+template("readMore", {
+						"slug": addEntry.slug
+					})
 				});
 			} else if (entry.allposts === 3) { // if allposts is 3, add the whole entry
-				var addEntryHTML = template("allposts", {
-					"title": addEntry.title,
-					"slug": addEntry.slug,
+				var addEntryHTML = template("entry", {
+					"title": template("link", {
+						"title": addEntry.title,
+						"url": "/"+addEntry.slug
+					}),
 					"date": parseDate(addEntry.dateSeconds),
 					"content": addEntry.html
 				});
