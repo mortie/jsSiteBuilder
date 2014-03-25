@@ -13,6 +13,7 @@
 			"markdown"=>"",
 			"id"=>"",
 			"type"=>0,
+			"sort"=>0
 		];
 	}
 ?>
@@ -56,6 +57,7 @@
 		}
 		getDoc("formType").value = getDoc("type").value; 
 		getDoc("formAllpostsType").value = getDoc("allpostsType").value;
+		getDoc("formSort").value = getDoc("sort").value;
 	}
 </script>
 
@@ -67,6 +69,7 @@
 	<input id="formAllposts" type="hidden" name="allposts">
 	<input id="formAllpostsType" type="hidden" name="allpostsType">
 	<input id="formType" type="hidden" name="type">
+	<input id="formSort" type="hidden" name="sort">
 </form>
 
 <div class="section">
@@ -80,6 +83,10 @@
 </div>
 
 <div class="section">
+	<div>
+		Sort:
+		<input id="sort" type="number" value="<?=$entry['sort'] ?>">
+	</div>
 	<select id="type">
 <option value='0'>Page</option>
 <?php
