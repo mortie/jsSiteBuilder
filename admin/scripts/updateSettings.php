@@ -13,4 +13,4 @@
 	if (!file_put_contents($root."settings.json", $settings)) {
 		message("Couldn't write settings file. Make sure PHP has write access.");
 	}
-	header("Location: ?p=settings");
+	header("Location: ?s=runNode&t=settings");
