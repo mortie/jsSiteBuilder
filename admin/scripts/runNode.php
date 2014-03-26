@@ -10,7 +10,9 @@
 		message($result);
 	}
 
-	if (!empty($_SERVER['HTTP_REFERER'])) {
+	if (!empty($_GET['t'])) {
+		header("Location: ?p=".$_GET['t']);
+	} else if (!empty($_SERVER['HTTP_REFERER'])) {
 		header("Location: ".$_SERVER['HTTP_REFERER']);
 	} else {
 		header("Location: ?");
