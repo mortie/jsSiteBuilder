@@ -14,7 +14,7 @@
         "log": "logs\/"
     },
     "display": {
-        "title": "Test Site",
+        "title": "Your Website",
         "theme": "default",
         "templates": "default"
     },

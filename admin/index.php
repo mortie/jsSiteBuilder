@@ -3,6 +3,8 @@
 	ini_set('display_errors',1);
 	error_reporting(-1);
 
+	umask(0);
+
 	session_start();
 
 	$root = "../../";
