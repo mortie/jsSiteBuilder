@@ -1,16 +1,18 @@
 body {
-	background-color: #DDD;
+	background-color: #F1F1F1;
 }
 
 .page {
 	background-color: #FFF;
-	max-width: 800px;
+	max-width: 700px;
 	width: 100%;
 
 	margin-right: auto;
 	margin-left: auto;
 
-	padding: 10px;
+	padding: 10px 50px;
+
+	box-shadow: 1px 3px 5px 0px #666;
 }
 
 .wide {

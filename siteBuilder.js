@@ -342,7 +342,8 @@ function parseEntry(entry) {
 }
 
 function parseDate(seconds) {
-	return seconds;
+	var date = new Date(seconds*1000);
+	return date.toDateString();
 }
 
 function writeEntry(path, entry) {
