@@ -379,7 +379,14 @@ function template(tmp, args) {
 			           "/"+tmp+".html";
 			context.caches.template[tmp] = fs.readFileSync(path, "utf8");
 		} catch(err) {
-			error("Reading template file failed.", err);
+			try {
+				var path = context.settings.dir.templates+
+				           "default"+
+				           "/"+tmp+".html";
+				context.caches.template[tmp] = fs.readFileSync(path, "utf8");
+			} catch(err) {
+				error("Reading template file failed.", err);
+			}
 		}
 	}
 
