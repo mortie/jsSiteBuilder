@@ -157,6 +157,5 @@
 </script>
 
 <?php
-	addNav("<a href='?p=entries'><button>Back</button></a>");
 	addNav("<button onclick=\"prepareForm(); document.getElementById('form').submit()\">Submit</button>");
 	addNav("<a href='?s=deleteEntry&id=".$entry['id']."'><button>Delete</button></a>");

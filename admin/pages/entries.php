@@ -13,5 +13,4 @@
 		echo "$type<a href='?p=editor&id=".$entry['id']."'>".$entry['title']."</a><br>\n";
 	}
 
-	addNav("<a href='?'><button>Back</button></a>");
 	addNav("<a href='?p=editor'><button>New Entry</button></a>");

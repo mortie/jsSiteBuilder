@@ -1,7 +1,6 @@
 <?php
 	requirePassword();
 
-	addNav("<a href='?'><button>Back</button></a>");
 	addNav("<button onclick='document.getElementById(\"form\").submit();'>Submit</button>");
 
 	$names = [
@@ -23,19 +22,19 @@
 		"display->templates"=>"Template"
 	];
 
-	function printSetting($key, $val, $parent=false) {
-		global $names;
+	$printSetting = function($key, $val, $parent=false) use ($names){
 		if ($parent === false) {
 			$name = $key;
 		} else {
 			$name = "$parent->$key";
 		}
+
 		echo template("settingsListEntry", [
 			"displayName"=>$names[$name],
 			"name"=>$name,
 			"value"=>$val,
 		]);
-	}
+	};
 ?>
 
 <form id="form" class="table" method="post" action="?s=updateSettings">
@@ -43,7 +42,7 @@
 	echo "<div class='subtitle'>General</div>\n";
 	foreach ($settings as $key=>$val) {
 		if (!is_object($val) && !empty($names[$key])) {
-			printSetting($key, $val);
+			$printSetting($key, $val);
 		}
 	}
 
@@ -51,7 +50,7 @@
 		if (is_object($val) && array_key_exists($key, $names)) {
 			echo "<div class='subtitle'>".$names[$key]."</div>\n";
 			foreach ($val as $subkey=>$subval) {
-				printSetting($subkey, $subval, $key);
+				$printSetting($subkey, $subval, $key);
 			}
 		}
 	}

@@ -1,7 +1,6 @@
 <?php
 	requirePassword();
 
-	addNav("<a href='?'><button>Back</button></a>");
 	addNav("<button onclick='document.getElementById(\"form\").submit()'>Submit</button>");
 ?>
 

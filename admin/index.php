@@ -62,7 +62,15 @@
 		return $str;
 	}
 
-	addNav("<a href='/'><button>Home</button></a>");
+	function inc($file) {
+		global $page;
+		global $mysqli;
+		global $root;
+		global $settings;
+		global $navBar;
+
+		include($file);
+	}
 
 	if (!empty($_GET['s'])) {
 		include("scripts/".$_GET['s'].".php");
@@ -70,11 +78,11 @@
 		if (!empty($_GET['p'])) {
 			$page = $_GET['p'];
 		} else {
-			$page = "index";
+			$page = "entries";
 		}
 
-		include("templates/start.php");
-		include("pages/$page.php");
-		include("templates/end.php");
+		inc("templates/start.php");
+		inc("pages/$page.php");
+		inc("templates/end.php");
 	}
 
