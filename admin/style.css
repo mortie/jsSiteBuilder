@@ -10,7 +10,7 @@ body {
 	margin-right: auto;
 	margin-left: auto;
 
-	padding: 10px 50px;
+	padding: 30px 40px;
 
 	box-shadow: 1px 3px 5px 0px #666;
 }
@@ -59,4 +59,9 @@ body {
 }
 .table input {
 	width: 100%;
+}
+
+a,
+a:visited{
+	color: #4C5CBA;
 }
