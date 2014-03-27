@@ -1,28 +1,46 @@
 <?php
 	requirePassword();
 
-	$eMarkdown = $mysqli->real_escape_string($_POST['markdown']);
-	$eSlug = $mysqli->real_escape_string(htmlentities($_POST['slug']));
-	$eTitle = $mysqli->real_escape_string(htmlentities($_POST['title']));
-	$eId = $mysqli->real_escape_string($_POST['id']);
-	$eType = $mysqli->real_escape_string($_POST['type']);
-	$eSort = $mysqli->real_escape_string($_POST['sort']);
-	if (empty($_POST['allposts'])) {
-		$eAllposts = 0;
-	} else {
-		$eAllposts = $mysqli->real_escape_string($_POST['allposts']);
+	//build entry array
+	$entry = [];
+	foreach($_POST as $key=>$val) {
+		$entry[$key] = $mysqli->real_escape_string($val);
 	}
-	$eAllpostsType = $mysqli->real_escape_string($_POST['allpostsType']);
+	$entry['updated'] = false;
 
-	if ($eId == "") {
-		while($mysqli->query("SELECT * FROM entries WHERE slug='$eSlug'")->num_rows !== 0) {
-			$eSlug .= "_"; 
+	if ($entry['id'] == "") {
+
+		//fix slug conflicts
+		$modifiedSlug = false;
+		while($mysqli->query("SELECT * FROM entries WHERE slug='".$entry['slug']."'")->num_rows !== 0) {
+			$entry['slug'] .= "_"; 
+			$modifiedSlug = true;
 		}
-		$mysqli->query("INSERT INTO entries (markdown, updated, slug, title, allposts, allpostsType, type, dateSeconds, sort) VALUES ('$eMarkdown', FALSE, '$eSlug', '$eTitle', '$eAllposts', '$allpostsType', '$eType', ".time().", $eSort)");
+		if ($modifiedSlug) {
+			message("Slug has been changed from ".$_POST['slug']." to ".$entry['slug'].".");
+		}
+
+		//create new, empty entry to be populated later
+		$mysqli->query("INSERT INTO `entries` (`id`) VALUES (NULL)");
+		$entry['id'] = $mysqli->insert_id;
+
 		message($mysqli->error);
-		header("Location: ?p=editor&id=$mysqli->insert_id");
-	} else {
-		$mysqli->query("UPDATE entries SET markdown='$eMarkdown', updated=FALSE, slug='$eSlug', title='$eTitle', allposts='$eAllposts', allpostsType='$eAllpostsType', type='$eType', sort='$eSort' WHERE id=$eId");
-		message($mysqli->error);
-		header("Location: ?p=editor&id=$eId");
+		$entry['dateSeconds'] = time();
 	}
+
+	//create SQL string
+	$firstRun = true;
+	foreach($entry as $key=>$val) {
+		if ($firstRun) {
+			$str = "$key='$val'";
+			$firstRun = false;
+		} else {
+			$str .= ", $key='$val'";
+		}
+	}
+
+	//insert updated data into the entry
+	$mysqli->query("UPDATE entries SET $str WHERE id=".$entry['id']);
+
+	message($mysqli->error);
+	header("Location: ?p=editor&id=".$entry['id']);

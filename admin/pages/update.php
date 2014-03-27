@@ -1,5 +1,6 @@
 <?php
 	requirePassword();
+	addNav("<a href='?'><button>Back</button><a>");
 
 	chdir($root);
 
