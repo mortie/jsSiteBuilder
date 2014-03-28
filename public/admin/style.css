@@ -1,0 +1,95 @@
+body {
+	background-color: #F1F1F1;
+}
+
+.page {
+	background-color: #FFF;
+	max-width: 700px;
+	width: 100%;
+
+	margin-right: auto;
+	margin-left: auto;
+
+	padding: 30px 40px;
+
+	box-shadow: 1px 3px 5px 0px #666;
+}
+
+#nav {
+	float: left;
+	background-color: #FFF;
+	box-shadow: 1px 3px 5px 0px #666;
+	margin: 0px;
+	padding: 20px;
+	height: 100%;
+}
+#nav li {
+	list-style-type: none;
+	height: 25px;
+}
+#nav ul {
+	padding: 0px;
+}
+
+#nav a {
+	font-size: 20px;
+	color: #999;
+	font-family: "Century Gothic",sans-serif;
+	text-decoration: none;
+	border-radius: 5px;
+	padding: 1px 5px;
+}
+#nav a:hover {
+	background-color: #CCC;
+	color: #FFF;
+}
+#nav .current {
+	color: #FFF !important;
+	background-color: #999 !important;
+}
+
+.wide {
+	width: 100%;
+}
+
+.section {
+	margin-top: 15px;
+	margin-bottom: 15px;
+}
+
+#textarea {
+	width: 98%;
+	height: 400px;
+	border-width: 1px;
+
+	padding: 5px;
+	margin: auto;
+	transform: translateX(-1px);
+	border-style: solid;
+
+	display: block;
+	position: relative;
+}
+
+.subtitle {
+	font-weight: bold;
+	margin-top: 20px;
+}
+
+.table .key {
+	display: inline-block;
+	width: 240px;
+	display: inline-block;
+}
+.table .val {
+	display: inline-block;
+	width: 60%;
+	display: inline-block;
+}
+.table .desc {
+	font-size: 10pt;
+	margin-bottom: 10px;
+}
+.table input {
+	width: 100%;
+}
