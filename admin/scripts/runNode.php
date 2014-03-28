@@ -1,6 +1,9 @@
 <?php
 	requirePassword();
 
+	$settings->updated = true;
+	writeSettings();
+
 	chdir($root);
 
 	$result = exec($settings->nodeCommand." siteBuilder.js");

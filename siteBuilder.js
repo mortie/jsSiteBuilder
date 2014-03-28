@@ -231,9 +231,6 @@ async.series({
 	},
 
 	"cleanup": function(next) {
-		wrench.chmodSyncRecursive(context.settings.dir.out, 0777);
-		wrench.chmodSyncRecursive(context.settings.dir.log, 0777);
-
 		setInterval(function() {
 			if (context.callbacks === 0) {
 				var endTime = (new Date()).getTime();

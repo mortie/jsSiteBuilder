@@ -58,6 +58,16 @@
 		return $str;
 	}
 
+	function writeSettings() {
+		global $settings;
+		global $root;
+		$settingsJson = json_encode($settings, JSON_PRETTY_PRINT);
+
+		if (!file_put_contents($root."settings.json", $settingsJson)) {
+			message("Couldn't write settings file. Make sure PHP has write access.");
+		}
+	}
+
 	function inc($file) {
 		global $page;
 		global $mysqli;

@@ -41,6 +41,9 @@
 
 	//insert updated data into the entry
 	$mysqli->query("UPDATE entries SET $str WHERE id=".$entry['id']);
-
 	message($mysqli->error);
+
+	$settings->updated = false;
+	writeSettings();
+
 	header("Location: ?p=editor&id=".$entry['id']);
