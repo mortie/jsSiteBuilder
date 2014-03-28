@@ -140,11 +140,13 @@ async.series({
 	},
 
 	"setupAdmin": function(next) {
-		error("Copying hidden admin dir to public dir failed.",
+		try {
 			wrench.copyDirSyncRecursive("admin", context.settings.dir.out+"admin", {
 				"forceDelete": true
-			}), true
-		);
+			});
+		} catch (err) {
+			error("Copying admin dir failed.", err);
+		}
 		next();
 	},
 
@@ -402,7 +404,7 @@ function template(tmp, args) {
 }
 
 var errorGrades = [
-	"Infio  ",
+	"Info   ",
 	"Notice ",
 	"Warning",
 	"Error  "
@@ -417,8 +419,12 @@ function log(text, grade) {
 	console.log(text);
 
 	if (context.settings.logToFile) {
-		if (!fs.existsSync(context.settings.dir.log)) {
-			fs.mkdirSync(context.settings.dir.log);
+		try {
+			if (!fs.existsSync(context.settings.dir.log)) {
+				fs.mkdirSync(context.settings.dir.log);
+			}
+		} catch(err) {
+			console.log(errorGrades[2]+": Could not create log dir! ("+err+")");
 		}
 
 		if (!context.caches.log) {
@@ -446,7 +452,11 @@ function log(text, grade) {
 		var path = context.settings.dir.log+context.caches.log.dateString;
 		text = "["+context.caches.log.timeString+"] "+text;
 
-		fs.appendFileSync(path, text+"\n");
+		try {
+			fs.appendFileSync(path, text+"\n");
+		} catch(err) {
+			console.log(errorGrades[2]+": Could not write to log file! ("+err+")");
+		}
 	}
 }
 

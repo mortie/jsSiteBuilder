@@ -15,3 +15,28 @@ body {
 
 	box-shadow: 1px 3px 5px 0px #666;
 }
+
+#content .section .title,
+#content .section .title a {
+	display: block;
+	font-weight: normal;
+	color: #999;
+	text-decoration: none;
+	border-style: none;
+	font-size: 20pt;
+	text-align: left;
+	font-family: "Century Gothic", sans-serif;
+}
+#content .section .title a:hover {
+	text-decoration: underline;
+}
+
+#content .allpostsLink a,
+#content .readMore a {
+	text-decoration: none;
+	color: #666;
+}
+#content .allpostsLink a:hover,
+#content .readMore a:hover{
+	text-decoration: underline;
+}
