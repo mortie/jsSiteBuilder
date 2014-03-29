@@ -93,3 +93,7 @@ body {
 .table input {
 	width: 100%;
 }
+
+#update .commit {
+	margin-bottom: 10px;
+}

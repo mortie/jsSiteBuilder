@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<link rel="stylesheet" href="/admin/style.css">
+		<meta charset="utf-8">
 	</head>
 	<body>
 <?php
