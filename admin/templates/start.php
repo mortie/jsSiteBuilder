@@ -19,30 +19,28 @@
 		<div id="nav">
 			<ul>
 <?php
-	$names = [
+	$pages = [
 		"editor"=>"Editor",
 		"entries"=>"Entries",
 		"postTypes"=>"Post Types",
 		"settings"=>"Settings",
-		"update"=>"Update"
+		"update"=>"Update",
+		"media"=>"Media"
 	];
 
-	$sPages = scandir("pages");
-	foreach($sPages as $sPage) {
-		$slug = rtrim($sPage, ".php");
-		if (!empty($names[$slug])) {
-			if ($slug == $page) {
-				$current = "current";
-			} else {
-				$current = "";
-			}
-			echo template("navListEntry", [
-				"url"=>"?p=$slug",
-				"title"=>$names[$slug],
-				"current"=>$current
-			]);
+	foreach ($pages as $slug=>$title) {
+		if ($slug == $page) {
+			$current = "current";
+		} else {
+			$current = "";
 		}
+		echo template("navListEntry", [
+			"url"=>"?p=$slug",
+			"title"=>$title,
+			"current"=>$current
+		]);
 	}
+
 	echo template("navListEntry", [
 		"url"=>"/",
 		"title"=>"Home",
@@ -54,5 +52,5 @@
 
 		<div id="<?=$page ?>" class="page">
 			<div id="message">
-				<?=getMessage() ?>
+<?=getMessage() ?>
 			</div>

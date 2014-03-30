@@ -23,5 +23,8 @@
 				"message"=>$msgStr[0]
 			]);
 		}
-		addNav("<a href='?s=upgrade'><button>Update</button></a>");
+		addNav(template("buttonLink", [
+			"url"=>"?s=upgrade",
+			"title"=>"Update"
+		]));
 	}

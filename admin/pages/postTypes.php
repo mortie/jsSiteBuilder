@@ -1,7 +1,5 @@
 <?php
 	requirePassword();
-
-	addNav("<button onclick='document.getElementById(\"form\").submit()'>Submit</button>");
 ?>
 
 <form id="form" method="post" action="?s=updatePostTypes">
@@ -16,5 +14,7 @@
 	}
 
 	echo template("typeListNew");
+
+	addNav("<button onclick='document.getElementById(\"form\").submit()'>Submit</button>");
 ?>
 </form>

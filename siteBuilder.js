@@ -85,13 +85,26 @@ async.series({
 						var file = result[i];
 
 						++context.callbacks;
-						fs.unlink(context.settings.dir.out+"media/"+result.name, function(err) {
-							error("Deleting file failed.", err);
+						fs.unlink(context.settings.dir.out+"media/"+file.name, function(err) {
+							if (err) {
+								log("Deleting file failed. ("+err+")", 2);
+							}
 
 							//copy from media/ to public/media/
-							fs.createReadStream("media/"+file.name).pipe(
-								fs.createWriteStream(context.settings.dir.out+"media/"+file.name)
-							);
+							try {
+								fs.createReadStream("media/"+file.name).pipe(
+									fs.createWriteStream(context.settings.dir.out+"media/"+file.name)
+								);
+							} catch (err) {
+								log("Copying file failed. ("+err+")", 2);
+							}
+
+							++context.callbacks;
+							context.connection.query("UPDATE media SET updated=TRUE WHERE id="+file.id, function(err, result) {
+								error("Querying database failed.", err);
+								--context.callbacks;
+							});
+
 							--context.callbacks;
 						}.bind(file));
 					}

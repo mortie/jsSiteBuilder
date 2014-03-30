@@ -1,8 +1,6 @@
 <?php
 	requirePassword();
 
-	addNav("<button onclick='document.getElementById(\"form\").submit();'>Submit</button>");
-
 	$names = [
 		"adminPass"=>"Admin Password",
 		"timeZone"=>"Time Zone",
@@ -54,5 +52,8 @@
 			}
 		}
 	}
+
+	addNav("<button onclick='document.getElementById(\"form\").submit();'>Submit</button>");
+
 ?>
 </form>
