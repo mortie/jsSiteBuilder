@@ -11,7 +11,8 @@
         "out": "public\/",
         "themes": "themes\/",
         "templates": "templates\/",
-        "log": "logs\/"
+        "log": "logs\/",
+        "media": "media\/"
     },
     "display": {
         "title": "Your Website",
@@ -20,5 +21,6 @@
     },
     "allpostsShortLength": "3",
     "logToFile": true,
-    "nodeCommand": "nodejs"
+    "nodeCommand": "nodejs",
+    "updated": false
 }
