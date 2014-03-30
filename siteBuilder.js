@@ -64,7 +64,7 @@ async.series({
 			}
 
 			++context.callbacks;
-			fs.mkdir("media", function(err) {
+			fs.mkdir(context.settings.dir.media, function(err) {
 				if (err && err.code != "EEXIST") {
 					error("Creating hidden media dir failed.", err);
 				}
@@ -290,9 +290,13 @@ function buildMenu(currentEntry) {
 
 function parseEntry(entry) {
 	var entryText = "";
+	var i;
+	var j;
+	var placeholders;
 
 	log("parsing "+entry.title, 0);
 
+	//do all allposts stuff
 	if (!entry.allposts) { //if allposts is 0, just output the entry itself
 		entryText = template("entry", {
 			"title": entry.title,
@@ -301,7 +305,7 @@ function parseEntry(entry) {
 		});
 	} else if (context.tree[entry.allpostsType]) {
 		var numEntries = context.tree[entry.allpostsType].length;
-		for (var i=0; i<numEntries; ++i) { //of not, loop through all entries requested by the entry...;
+		for (i=0; i<numEntries; ++i) { //of not, loop through all entries requested by the entry...;
 			var addEntry = context.tree[entry.allpostsType][i];
 			log("Adding "+addEntry.title+" to "+entry.title+".", 0);
 
@@ -313,7 +317,7 @@ function parseEntry(entry) {
 			} else if (entry.allposts === 2) { //if allposts is 2, add a few paragraphs from the entry
 				var paragraphs = addEntry.html.split("</p>");
 				var addEntryText = "";
-				for (var j=0; j<=context.settings.allpostsShortLength; ++j) {
+				for (j=0; j<=context.settings.allpostsShortLength; ++j) {
 					if (paragraphs[j]) {
 						addEntryText += paragraphs[j]+"</p>";
 					}
@@ -342,6 +346,23 @@ function parseEntry(entry) {
 			entryText += addEntryHTML;
 		}
 	}
+
+	//fix {placeHolders}
+	var placeHolders = entryText.match(/\{.+\}/);
+	if (placeHolders) {
+		for (i=0; i<placeHolders.length; ++i) {
+			var placeHolder = placeHolders[i].replace(/[\{\}\s+]/g, "").split(",");
+
+			if (placeHolder[0] == "img" || placeHolder[0] == "video") {
+				entryText = entryText.replace(placeHolders[i], template("media", {
+					"tag": placeHolder[0],
+					"src": "media/"+placeHolder[1],
+					"desc": placeHolder[2]
+				}));
+			}
+		}
+	}
+
 
 	if (entry.allposts === 1) {
 		return template("entry", {
@@ -406,7 +427,10 @@ function template(tmp, args) {
 
 	for (var i in args) {
 		if (args.hasOwnProperty(i)) {
-			str = str.replace("{"+i+"}",  args[i], "g");
+			if (!args[i]) {
+				args[i] = "";
+			}
+			str = str.split("{"+i+"}").join(args[i]);
 		}
 	}
 
