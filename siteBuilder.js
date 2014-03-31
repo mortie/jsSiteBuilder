@@ -351,12 +351,12 @@ function parseEntry(entry) {
 	var placeHolders = entryText.match(/\{.+\}/);
 	if (placeHolders) {
 		for (i=0; i<placeHolders.length; ++i) {
-			var placeHolder = placeHolders[i].replace(/[\{\}\s+]/g, "").split(",");
+			var placeHolder = placeHolders[i].replace(/[\{\}]/g, "").split(";;");
 
 			if (placeHolder[0] == "img" || placeHolder[0] == "video") {
 				entryText = entryText.replace(placeHolders[i], template("media", {
-					"tag": placeHolder[0],
-					"src": "media/"+placeHolder[1],
+					"tag": placeHolder[0].replace(/\s+/g, ""),
+					"src": "/media/"+placeHolder[1].replace(/\s+/g, ""),
 					"desc": placeHolder[2]
 				}));
 			}
