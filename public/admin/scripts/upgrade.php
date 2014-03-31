@@ -2,4 +2,6 @@
 	chdir($root);
 	message(exec("git fetch; git checkout --theirs ."));
 
-	header("Location: ?s=runNode&t=update");
+	$settings->updated = false;
+	writeSettings();
+	header("Location: ?p=update");
