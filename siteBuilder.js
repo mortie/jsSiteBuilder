@@ -56,60 +56,56 @@ async.series({
 		});
 	},
 
-	"setupMedia": function(next) {
+	"setupGeneral": function(next) {
 		++context.callbacks;
 		fs.mkdir(context.settings.dir.out, function(err) {
 			if (err && err.code != "EEXIST") {
 				error("Creating public dir failed.", err);
 			}
 
+			next();
+			--context.callbacks;
+		})
+	},
+
+	"setupMedia": function(next) {
+		++context.callbacks;
+		fs.mkdir(context.settings.dir.out+"media", function(err) {
+			if (err && err.code != "EEXIST") {
+				error("Creating public dir failed.", err);
+			}
+
+			//write all files which don't exist already
 			++context.callbacks;
-			fs.mkdir(context.settings.dir.media, function(err) {
-				if (err && err.code != "EEXIST") {
-					error("Creating hidden media dir failed.", err);
-				}
-				--context.callbacks;
-			});
+			context.connection.query("SELECT id, extension FROM media", function(err, result) {
+				error("Querying database failed.", err);
 
-			++context.callbacks;
-			fs.mkdir(context.settings.dir.out+"media", function(err) {
-				if (err && err.code != "EEXIST") {
-					error("Creating public media dir failed.", err);
-				}
+				//loop through all the media
+				for (var i=0; i<result.length; ++i) {
+					var medium = result[i];
 
-				++context.callbacks;
-				context.connection.query("SELECT * FROM media WHERE updated=FALSE", function(err, result) {
-					error("Querying database failed.", err);
+					//get the media which don't exist in the public dir
+					++context.callbacks;
+					fs.exists(context.settings.dir.out+"media/"+medium.id+medium.extension, function(exists) {
+						if (!exists) {
 
-					for (var i=0; i<result.length; ++i) {
-						var file = result[i];
-
-						++context.callbacks;
-						fs.unlink(context.settings.dir.out+"media/"+file.name, function(err) {
-							if (err) {
-								log("Deleting file failed. ("+err+")", 2);
-							}
-
-							//copy from media/ to public/media/
-							try {
-								fs.createReadStream("media/"+file.name).pipe(
-									fs.createWriteStream(context.settings.dir.out+"media/"+file.name)
-								);
-							} catch (err) {
-								log("Copying file failed. ("+err+")", 2);
-							}
-
+							//if the file doesn't exist, query database to get the file's content...
 							++context.callbacks;
-							context.connection.query("UPDATE media SET updated=TRUE WHERE id="+file.id, function(err, result) {
-								error("Querying database failed.", err);
+							context.connection.query("SELECT id, content, extension FROM media WHERE id="+medium.id, function(err, result) {
+								medium = result[0];
+
+								//and write the content to disk.
+								++context.callbacks;
+								fs.writeFile(context.settings.dir.out+"media/"+medium.id+"."+medium.extension, medium.content, function(err) {
+									error("Writing file failed.", err);
+									--context.callbacks;
+								});
 								--context.callbacks;
 							});
-
-							--context.callbacks;
-						}.bind(file));
-					}
-					--context.callbacks;
-				});
+						}
+						--context.callbacks;
+					}.bind(medium))
+				}
 				--context.callbacks;
 			});
 
@@ -203,8 +199,6 @@ async.series({
 	},
 
 	"buildHTML": function(next) {
-		context.html = [];
-
 		for (var i=0; i<context.tree.length; ++i) {
 			if (!context.tree[i]) {
 				continue;
@@ -212,36 +206,30 @@ async.series({
 			for (var j=0; j<context.tree[i].length; ++j) {
 				var entry = context.tree[i][j];
 
-				var entryHTML = template("index", {
-					"title": entry.title+" - "+context.settings.display.title,
-					"menu": buildMenu(entry),
-					"content": parseEntry(entry)
-				});
+				if (i == 0 || j == 0) {
+					var index = true;
+				} else {
+					var index = false;
+				}
 
-				context.html.push({
-					"html": entryHTML,
-					"metadata": entry
-				});
+				++context.callbacks;
+				parseEntry(entry, function(entry) {
+					entry.html = template("index", {
+						"title": entry.title+" - "+context.settings.display.title,
+						"menu": buildMenu(entry),
+						"content": entry.html
+					}); 
+
+					writeEntry(context.settings.dir.out+entry.slug+"/", entry);
+
+					if (index) {
+						writeEntry(context.settings.dir.out, entry);
+					}
+
+					--context.callbacks;
+				}.bind(index));
 			}
 		}
-		next();
-	},
-
-	"writeHTML": function(next) {
-		var path;
-		for (var i=0; i<context.html.length; ++i) {
-			var entry = context.html[i];
-
-			path = context.settings.dir.out+entry.metadata.slug+"/";
-			writeEntry(path, entry);
-		}
-		if (context.html[0]) {
-			path = context.settings.dir.out;
-			writeEntry(path, context.html[0]);
-		} else {
-			log("No entries to write.", 1);
-		}
-
 		next();
 	},
 
@@ -288,7 +276,7 @@ function buildMenu(currentEntry) {
 	});
 }
 
-function parseEntry(entry) {
+function parseEntry(entry, callback) {
 	var entryText = "";
 	var i;
 	var j;
@@ -297,24 +285,32 @@ function parseEntry(entry) {
 	log("parsing "+entry.title, 0);
 
 	//do all allposts stuff
-	if (!entry.allposts) { //if allposts is 0, just output the entry itself
+	//if the entry isn't a list, just give us the entry itself
+	if (!entry.allposts) {
 		entryText = template("entry", {
 			"title": entry.title,
 			"date": parseDate(entry.dateSeconds),
 			"content": entry.html
 		});
+
+	//if it is a list, and if there are entries of the type the entry wants to list...
 	} else if (context.tree[entry.allpostsType]) {
 		var numEntries = context.tree[entry.allpostsType].length;
-		for (i=0; i<numEntries; ++i) { //of not, loop through all entries requested by the entry...;
+
+		//loop through all entries of the type the wants to list
+		for (i=0; i<numEntries; ++i) {
 			var addEntry = context.tree[entry.allpostsType][i];
 			log("Adding "+addEntry.title+" to "+entry.title+".", 0);
 
-			if (entry.allposts === 1) { //if allposts is 1, just add a link
-				var addEntryHTML = template("allpostsLink", {
+			//if allposts is 1, just add a link
+			if (entry.allposts === 1) {
+					var addEntryHTML = template("allpostsLink", {
 					"slug": addEntry.slug,
 					"title": addEntry.title
 				});
-			} else if (entry.allposts === 2) { //if allposts is 2, add a few paragraphs from the entry
+
+			//if allposts is 2, add a few paragraphs from the entry
+			} else if (entry.allposts === 2) {
 				var paragraphs = addEntry.html.split("</p>");
 				var addEntryText = "";
 				for (j=0; j<=context.settings.allpostsShortLength; ++j) {
@@ -333,7 +329,9 @@ function parseEntry(entry) {
 						"slug": addEntry.slug
 					})
 				});
-			} else if (entry.allposts === 3) { // if allposts is 3, add the whole entry
+
+			//if allposts is 3, add the whole entry
+			} else if (entry.allposts === 3) {
 				var addEntryHTML = template("entry", {
 					"title": template("link", {
 						"title": addEntry.title,
@@ -348,30 +346,59 @@ function parseEntry(entry) {
 	}
 
 	//fix {placeHolders}
-	var placeHolders = entryText.match(/\{.+\}/);
-	if (placeHolders) {
-		for (i=0; i<placeHolders.length; ++i) {
-			var placeHolder = placeHolders[i].replace(/[\{\}]/g, "").split(";;");
+	context.connection.query("SELECT id, extension, title FROM media", function(html, err, result) {
+		error("Querying database failed.", err);
 
-			if (placeHolder[0] == "img" || placeHolder[0] == "video") {
-				entryText = entryText.replace(placeHolders[i], template("media", {
-					"tag": placeHolder[0].replace(/\s+/g, ""),
-					"src": "/media/"+placeHolder[1].replace(/\s+/g, ""),
-					"desc": placeHolder[2]
-				}));
+		var media = {};
+		for (var i=0; i<result.length; ++i) {
+			var mediaItem = result[i];
+
+			media[mediaItem.title] = {
+				"id": mediaItem.id,
+				"extension": mediaItem.extension
 			}
 		}
-	}
 
+		var placeHolders = entryText.match(/\{.+\}/);
+		if (placeHolders) {
+			for (i=0; i<placeHolders.length; ++i) {
+				var placeHolder = placeHolders[i].replace(/[\{\}]/g, "").split(";;");
 
-	if (entry.allposts === 1) {
-		return template("entry", {
-			"title": "",
-			"date": "",
-			"content": entryText
-		});
-	}
-	return entryText;
+				if (placeHolder[0] == "img"
+				||  placeHolder[0] == "video"
+				||  placeHolder[0] == "audio") {
+
+					//medium is the requested medium if it exists, or an empty object
+					var mediaItem = media[(placeHolder[1] || "").trim()];
+
+					if (mediaItem) {
+						var fileName = mediaItem.id+"."+mediaItem.extension || "";
+					} else {
+						var fileName = "";
+					}
+					var desc = (placeHolder[2] || "").trim();
+
+					entryText = entryText.replace(placeHolders[i], template("media", {
+						"tag": placeHolder[0].trim(),
+						"src": "/media/"+fileName,
+						"desc": desc
+					}));
+				}
+			}
+		}
+
+		if (entry.allposts === 1) {
+			entryText = template("entry", {
+				"title": "",
+				"date": "",
+				"content": entryText
+			});
+		}
+
+		entry.html = entryText;
+
+		callback(entry);
+	}.bind(entry, entryText));
 }
 
 function parseDate(seconds) {
@@ -381,7 +408,7 @@ function parseDate(seconds) {
 
 function writeEntry(path, entry) {
 	if (entry) {
-		log("Writing '"+entry.metadata.title+"' to "+path+"index.html.", 0);
+		log("Writing '"+entry.title+"' to "+path+"index.html.", 0);
 
 		++context.callbacks;
 		fs.mkdir(path, function(result, err) {
