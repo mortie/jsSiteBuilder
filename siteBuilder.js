@@ -206,10 +206,8 @@ async.series({
 			for (var j=0; j<context.tree[i].length; ++j) {
 				var entry = context.tree[i][j];
 
-				if (i == 0 || j == 0) {
-					var index = true;
-				} else {
-					var index = false;
+				if (i==0 && j==0) {
+					context.siteIndex = entry;
 				}
 
 				++context.callbacks;
@@ -222,12 +220,13 @@ async.series({
 
 					writeEntry(context.settings.dir.out+entry.slug+"/", entry);
 
-					if (index) {
+					if (entry == context.siteIndex) {
+						console.log(entry.title+" is index")
 						writeEntry(context.settings.dir.out, entry);
 					}
-
 					--context.callbacks;
-				}.bind(index));
+				});
+				firstEntry = false;
 			}
 		}
 		next();
