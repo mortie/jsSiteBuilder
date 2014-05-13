@@ -176,10 +176,10 @@ async.series({
 				}
 
 				//do the tree building
-				if (!context.tree[entry.type]) {
-					context.tree[entry.type] = [];
+				if (!context.tree[entry.category]) {
+					context.tree[entry.category] = [];
 				}
-				context.tree[entry.type].push(entry);
+				context.tree[entry.category].push(entry);
 
 				//push HTML updates to the SQL if necessary
 				if (!entry.updated) {
@@ -283,36 +283,36 @@ function parseEntry(entry, callback) {
 
 	log("parsing "+entry.title, 0);
 
-	//do all allposts stuff
+	//do all type stuff
 	//if the entry isn't a list, just give us the entry itself
-	if (!entry.allposts) {
+	if (entry.type === 0) {
 		entryText = template("entry", {
 			"title": entry.title,
 			"date": parseDate(entry.dateSeconds),
 			"content": entry.html
 		});
 
-	//if it is a list, and if there are entries of the type the entry wants to list...
-	} else if (context.tree[entry.allpostsType]) {
-		var numEntries = context.tree[entry.allpostsType].length;
+		//if it is a list, and if there are entries of the type the entry wants to list...
+	} else if (context.tree[entry.listCategory]) {
+		var numEntries = context.tree[entry.listCategory].length;
 
 		//loop through all entries of the type the wants to list
 		for (i=0; i<numEntries; ++i) {
-			var addEntry = context.tree[entry.allpostsType][i];
+			var addEntry = context.tree[entry.listCategory][i];
 			log("Adding "+addEntry.title+" to "+entry.title+".", 0);
 
-			//if allposts is 1, just add a link
-			if (entry.allposts === 1) {
-					var addEntryHTML = template("allpostsLink", {
+			//if type 1, just add a link
+			if (entry.type === 1) {
+				var addEntryHTML = template("listLink", {
 					"slug": addEntry.slug,
 					"title": addEntry.title
 				});
 
-			//if allposts is 2, add a few paragraphs from the entry
-			} else if (entry.allposts === 2) {
+				//if type 2, add a few paragraphs from the entry
+			} else if (entry.type === 2) {
 				var paragraphs = addEntry.html.split("</p>");
 				var addEntryText = "";
-				for (j=0; j<=context.settings.allpostsShortLength; ++j) {
+				for (j=0; j<=context.settings.shortListLength; ++j) {
 					if (paragraphs[j]) {
 						addEntryText += paragraphs[j]+"</p>";
 					}
@@ -323,20 +323,20 @@ function parseEntry(entry, callback) {
 						"title": addEntry.title,
 						"url": "/"+addEntry.slug
 					}),
-					"date": parseDate(addEntry.dateSeconds),
+						"date": parseDate(addEntry.dateSeconds),
 					"content": addEntryText+template("readMore", {
 						"slug": addEntry.slug
 					})
 				});
 
-			//if allposts is 3, add the whole entry
-			} else if (entry.allposts === 3) {
+				//if type 3, add the whole entry
+			} else if (entry.type === 3) {
 				var addEntryHTML = template("entry", {
 					"title": template("link", {
 						"title": addEntry.title,
 						"url": "/"+addEntry.slug
 					}),
-					"date": parseDate(addEntry.dateSeconds),
+						"date": parseDate(addEntry.dateSeconds),
 					"content": addEntry.html
 				});
 			}
@@ -354,7 +354,7 @@ function parseEntry(entry, callback) {
 
 			media[mediaItem.title] = {
 				"id": mediaItem.id,
-				"extension": mediaItem.extension
+	"extension": mediaItem.extension
 			}
 		}
 
@@ -364,29 +364,29 @@ function parseEntry(entry, callback) {
 				var placeHolder = placeHolders[i].replace(/[\{\}]/g, "").split(";;");
 
 				if (placeHolder[0] == "img"
-				||  placeHolder[0] == "video"
-				||  placeHolder[0] == "audio") {
+					||  placeHolder[0] == "video"
+					||  placeHolder[0] == "audio") {
 
-					//medium is the requested medium if it exists, or an empty object
-					var mediaItem = media[(placeHolder[1] || "").trim()];
+						//medium is the requested medium if it exists, or an empty object
+						var mediaItem = media[(placeHolder[1] || "").trim()];
 
-					if (mediaItem) {
-						var fileName = mediaItem.id+"."+mediaItem.extension || "";
-					} else {
-						var fileName = "";
+						if (mediaItem) {
+							var fileName = mediaItem.id+"."+mediaItem.extension || "";
+						} else {
+							var fileName = "";
+						}
+						var desc = (placeHolder[2] || "").trim();
+
+						entryText = entryText.replace(placeHolders[i], template("media", {
+							"tag": placeHolder[0].trim(),
+								  "src": "/media/"+fileName,
+								  "desc": desc
+						}));
 					}
-					var desc = (placeHolder[2] || "").trim();
-
-					entryText = entryText.replace(placeHolders[i], template("media", {
-						"tag": placeHolder[0].trim(),
-						"src": "/media/"+fileName,
-						"desc": desc
-					}));
-				}
 			}
 		}
 
-		if (entry.allposts === 1) {
+		if (entry.type === 1) {
 			entryText = template("entry", {
 				"title": "",
 				"date": "",
@@ -434,14 +434,14 @@ function template(tmp, args) {
 	if (!context.caches.template[tmp]) {
 		try {
 			var path = context.settings.dir.templates+
-			           context.settings.display.templates+
-			           "/"+tmp+".html";
+				context.settings.display.templates+
+				"/"+tmp+".html";
 			context.caches.template[tmp] = fs.readFileSync(path, "utf8");
 		} catch(err) {
 			try {
 				var path = context.settings.dir.templates+
-				           "default"+
-				           "/"+tmp+".html";
+					"default"+
+					"/"+tmp+".html";
 				context.caches.template[tmp] = fs.readFileSync(path, "utf8");
 			} catch(err) {
 				error("Reading template file failed.", err);
@@ -467,50 +467,50 @@ function template(tmp, args) {
 }
 
 var errorGrades = [
-	"Info   ",
+"Info   ",
 	"Notice ",
 	"Warning",
 	"Error  "
-];
+	];
 
-function log(text, grade) {
-	if (!grade) {
-		grade = 0;
-	}
+	function log(text, grade) {
+		if (!grade) {
+			grade = 0;
+		}
 
-	text = errorGrades[grade]+": "+text;
-	console.log(text);
+		text = errorGrades[grade]+": "+text;
+		console.log(text);
 
-	if (context.settings.logToFile) {
-		try {
-			if (!fs.existsSync(context.settings.dir.log)) {
-				fs.mkdirSync(context.settings.dir.log);
+		if (context.settings.logToFile) {
+			try {
+				if (!fs.existsSync(context.settings.dir.log)) {
+					fs.mkdirSync(context.settings.dir.log);
+				}
+			} catch(err) {
+				console.log(errorGrades[2]+": Could not create log dir! ("+err+")");
 			}
-		} catch(err) {
-			console.log(errorGrades[2]+": Could not create log dir! ("+err+")");
-		}
 
-		if (!context.caches.log) {
-			context.caches.log = {};
+			if (!context.caches.log) {
+				context.caches.log = {};
 
-			var date = new Date();
+				var date = new Date();
 
-			var yyyy = new String(date.getFullYear());	
-			var mm = new String(date.getMonth()+1);
-			    if (mm.length < 2) mm = "0"+mm;
-			var dd = new String(date.getDate());
-			    if (dd.length < 2) dd = "0"+dd;
+				var yyyy = new String(date.getFullYear());	
+				var mm = new String(date.getMonth()+1);
+				if (mm.length < 2) mm = "0"+mm;
+				var dd = new String(date.getDate());
+				if (dd.length < 2) dd = "0"+dd;
 
-			var hours = new String(date.getHours());
-			    if (hours.length < 2) hours = "0"+hours;
-			var minutes = new String(date.getMinutes());
-			    if (minutes.length < 2) minutes = "0"+minutes;
-			var seconds = new String(date.getSeconds());
-			    if (seconds.length < 2) seconds = "0"+seconds;
+				var hours = new String(date.getHours());
+				if (hours.length < 2) hours = "0"+hours;
+				var minutes = new String(date.getMinutes());
+				if (minutes.length < 2) minutes = "0"+minutes;
+				var seconds = new String(date.getSeconds());
+				if (seconds.length < 2) seconds = "0"+seconds;
 
-			context.caches.log.dateString = yyyy+"."+mm+"."+dd;
-			context.caches.log.timeString = hours+":"+minutes+":"+seconds;
-		}
+				context.caches.log.dateString = yyyy+"."+mm+"."+dd;
+				context.caches.log.timeString = hours+":"+minutes+":"+seconds;
+			}
 
 		var path = context.settings.dir.log+context.caches.log.dateString;
 		text = "["+context.caches.log.timeString+"] "+text;
