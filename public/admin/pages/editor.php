@@ -25,10 +25,10 @@
 		var list = document.getElementById("listEditor");
 		if (editor == "text") {
 			text.style.display = "";
-			allposts.style.display = "none";
+			list.style.display = "none";
 		} else if (editor == "list") {
 			text.style.display = "none";
-			allposts.style.display = "";
+			list.style.display = "";
 		}
 		usedEditor = editor;
 	}
