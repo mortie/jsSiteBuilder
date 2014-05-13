@@ -22,7 +22,7 @@
 	}
 
 	function requirePassword() {
-		if ($_SESSION['authorized'] === true) {
+		if (!empty($_SESSION['authorized']) && $_SESSION['authorized'] === true) {
 			return true;
 		} else {
 			header("Location: ?p=login");

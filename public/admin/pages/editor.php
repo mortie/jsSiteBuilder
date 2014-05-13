@@ -58,6 +58,7 @@
 		getDoc("formCategory").value = getDoc("category").value; 
 		getDoc("formListCategory").value = getDoc("listCategory").value;
 		getDoc("formSort").value = getDoc("sort").value;
+		getDoc("formDisplay").value = getDoc("display").checked?"1":"0";
 	}
 </script>
 
@@ -70,6 +71,7 @@
 	<input id="formListCategory" type="hidden" name="listCategory">
 	<input id="formCategory" type="hidden" name="category">
 	<input id="formSort" type="hidden" name="sort">
+	<input id="formDisplay" type="hidden" name="display">
 </form>
 
 <div class="section">
@@ -90,14 +92,14 @@
 	<select id="category">
 <option value='0'>Page</option>
 <?php
-	$types = $mysqli->query("SELECT * FROM categories");
-	while ($type = $types->fetch_assoc()) {
-		if ($entry['type'] == $type['id']) {
+	$categories = $mysqli->query("SELECT * FROM categories");
+	while ($category = $categories->fetch_assoc()) {
+		if ($entry['category'] == $category['id']) {
 			$selected = "selected";
 		} else {
 			$selected = "";
 		}
-		echo "<option value='".$type['id']."' $selected>".$type['name']."</option>\n";
+		echo "<option value='".$category['id']."' $selected>".$category['name']."</option>\n";
 	}
 ?>
 	</select>
@@ -139,6 +141,9 @@
 	</div>
 </div>
 
+<div class="section">
+	<label><input id="display" type="checkbox" <?php if ($entry['display']) echo "checked" ?>>Display</label>
+</div>
 
 <script>
 	if (<?=$entry['type'] ?> == 0) {

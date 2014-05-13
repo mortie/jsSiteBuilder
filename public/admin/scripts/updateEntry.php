@@ -32,10 +32,10 @@
 	$firstRun = true;
 	foreach($entry as $key=>$val) {
 		if ($firstRun) {
-			$str = "$key='$val'";
+			$str = "$key=\"$val\"";
 			$firstRun = false;
 		} else {
-			$str .= ", $key='$val'";
+			$str .= ", $key=\"$val\"";
 		}
 	}
 
