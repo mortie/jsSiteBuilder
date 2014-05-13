@@ -141,7 +141,7 @@
 
 
 <script>
-	if (<?=$entry['allposts'] ?> == 0) {
+	if (<?=$entry['type'] ?> == 0) {
 		useEditor("text");
 	} else {
 		useEditor("list");
