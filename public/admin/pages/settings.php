@@ -4,7 +4,7 @@
 	$names = [
 		"adminPass"=>"Admin Password",
 		"timeZone"=>"Time Zone",
-		"allpostsShortLength"=>"Short List Length",
+		"shortListLength"=>"Short List Length",
 		"logToFile"=>false,
 		"nodeCommand"=>"Node.js Command",
 		

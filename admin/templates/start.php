@@ -22,7 +22,7 @@
 	$pages = [
 		"editor"=>"Editor",
 		"entries"=>"Entries",
-		"postTypes"=>"Post Types",
+		"categories"=>"Categories",
 		"settings"=>"Settings",
 		"update"=>"Update",
 		"media"=>"Media"

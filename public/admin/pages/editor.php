@@ -8,11 +8,11 @@
 		$entry = [
 			"title"=>"",
 			"slug"=>"",
-			"allposts"=>0,
-			"allpostsType"=>1,
+			"type"=>0,
+			"listCategory"=>1,
 			"markdown"=>"",
 			"id"=>"",
-			"type"=>0,
+			"category"=>0,
 			"sort"=>0
 		];
 	}
@@ -22,13 +22,13 @@
 	var usedEditor;
 	function useEditor(editor) {
 		var text = document.getElementById("textEditor");
-		var allposts = document.getElementById("allpostsEditor");
+		var list = document.getElementById("listEditor");
 		if (editor == "text") {
 			text.style.display = "";
-			allposts.style.display = "none";
-		} else if (editor == "allposts") {
+			list.style.display = "none";
+		} else if (editor == "list") {
 			text.style.display = "none";
-			allposts.style.display = "";
+			list.style.display = "";
 		}
 		usedEditor = editor;
 	}
@@ -51,13 +51,14 @@
 		getDoc("formSlug").value = getDoc("slug").value;
 		getDoc("formTitle").value = getDoc("title").value;
 		if (usedEditor == "text") {
-			getDoc("formAllposts").value = 0;
+			getDoc("formType").value = 0;
 		} else {
-			getDoc("formAllposts").value = getRadio("allposts").value;
+			getDoc("formType").value = getRadio("type").value;
 		}
-		getDoc("formType").value = getDoc("type").value; 
-		getDoc("formAllpostsType").value = getDoc("allpostsType").value;
+		getDoc("formCategory").value = getDoc("category").value; 
+		getDoc("formListCategory").value = getDoc("listCategory").value;
 		getDoc("formSort").value = getDoc("sort").value;
+		getDoc("formDisplay").value = getDoc("display").checked?"1":"0";
 	}
 </script>
 
@@ -66,10 +67,11 @@
 	<input id="formSlug" type="hidden" name="slug">
 	<input id="formTitle" type="hidden" name="title">
 	<input id="formId" type="hidden" name="id" value="<?=$entry['id'] ?>">
-	<input id="formAllposts" type="hidden" name="allposts">
-	<input id="formAllpostsType" type="hidden" name="allpostsType">
 	<input id="formType" type="hidden" name="type">
+	<input id="formListCategory" type="hidden" name="listCategory">
+	<input id="formCategory" type="hidden" name="category">
 	<input id="formSort" type="hidden" name="sort">
+	<input id="formDisplay" type="hidden" name="display">
 </form>
 
 <div class="section">
@@ -87,46 +89,46 @@
 		Sort:
 		<input id="sort" type="number" value="<?=$entry['sort'] ?>">
 	</div>
-	<select id="type">
+	<select id="category">
 <option value='0'>Page</option>
 <?php
-	$types = $mysqli->query("SELECT * FROM types");
-	while ($type = $types->fetch_assoc()) {
-		if ($entry['type'] == $type['id']) {
+	$categories = $mysqli->query("SELECT * FROM categories");
+	while ($category = $categories->fetch_assoc()) {
+		if ($entry['category'] == $category['id']) {
 			$selected = "selected";
 		} else {
 			$selected = "";
 		}
-		echo "<option value='".$type['id']."' $selected>".$type['name']."</option>\n";
+		echo "<option value='".$category['id']."' $selected>".$category['name']."</option>\n";
 	}
 ?>
 	</select>
 </div>
 
 <div class="section">
-	<label><input type="radio" name="allpostsKind" onclick="useEditor('text')" <?php if ($entry['allposts'] == 0) echo "checked" ?>>Entry</label>
-	<label><input type="radio" name="allpostsKind" onclick="useEditor('allposts')" <?php if ($entry['allposts'] != 0) echo "checked" ?>>List</label><br>
+	<label><input type="radio" name="textOrList" onclick="useEditor('text')" <?php if ($entry['type'] == 0) echo "checked" ?>>Entry</label>
+	<label><input type="radio" name="textOrList" onclick="useEditor('list')" <?php if ($entry['type'] != 0) echo "checked" ?>>List</label><br>
 
 	<div id="textEditor">
 		<textarea id="textarea"><?=$entry['markdown'] ?></textarea>
 	</div>
 
-	<div id="allpostsEditor">
+	<div id="listEditor">
 		<div class="section">
 		List:<br>
-			<label><input type="radio" name="allposts" value="1" <?php if ($entry['allposts'] == 1) echo "checked" ?>>Link</label><br>
-			<label><input type="radio" name="allposts" value="2" <?php if ($entry['allposts'] == 2) echo "checked" ?>>Short</label><br>
-			<label><input type="radio" name="allposts" value="3" <?php if ($entry['allposts'] == 3) echo "checked" ?>>Full</label>
+			<label><input type="radio" name="type" value="1" <?php if ($entry['type'] == 1) echo "checked" ?>>Link</label><br>
+			<label><input type="radio" name="type" value="2" <?php if ($entry['type'] == 2) echo "checked" ?>>Short</label><br>
+			<label><input type="radio" name="type" value="3" <?php if ($entry['type'] == 3) echo "checked" ?>>Full</label>
 		</div>
 
 		<div class="selection">
 			List entries of type:
-			<select id="allpostsType">
+			<select id="listCategory">
 <option value='0'>Page</option>
 <?php
-	$types = $mysqli->query("SELECT * FROM types");
+	$types = $mysqli->query("SELECT * FROM categories");
 	while ($type = $types->fetch_assoc()) {
-		if ($entry['allpostsType'] == $type['id']) {
+		if ($entry['listCategory'] == $type['id']) {
 			$selected = "selected";
 		} else {
 			$selected = "";
@@ -139,12 +141,15 @@
 	</div>
 </div>
 
+<div class="section">
+	<label><input id="display" type="checkbox" <?php if ($entry['display']) echo "checked" ?>>Display</label>
+</div>
 
 <script>
-	if (<?=$entry['allposts'] ?> == 0) {
+	if (<?=$entry['type'] ?> == 0) {
 		useEditor("text");
 	} else {
-		useEditor("allposts");
+		useEditor("list");
 	}
 	var TAB = "\t";
 
