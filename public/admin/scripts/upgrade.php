@@ -8,7 +8,7 @@
 	$newSettings = json_decode(file_get_contents("settings.json"));
 
 	//merge new settings file to old settings array
-	$settings = array_merge($newSettings, $settings);
+	$settings = array_merge((array)$newSettings, (array)$settings);
 
 	//write the resulting settings
 	$settings->updated = false;
