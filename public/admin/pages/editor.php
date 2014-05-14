@@ -13,7 +13,8 @@
 			"markdown"=>"",
 			"id"=>"",
 			"category"=>0,
-			"sort"=>0
+			"sort"=>0,
+			"display"=>true
 		];
 	}
 ?>

@@ -58,7 +58,7 @@
 		return $str;
 	}
 
-	function writeSettings($isAtRoot) {
+	function writeSettings($isAtRoot=false) {
 		global $settings;
 		global $root;
 		$settingsJson = json_encode($settings, JSON_PRETTY_PRINT);
