@@ -58,12 +58,18 @@
 		return $str;
 	}
 
-	function writeSettings() {
+	function writeSettings($isAtRoot) {
 		global $settings;
 		global $root;
 		$settingsJson = json_encode($settings, JSON_PRETTY_PRINT);
 
-		if (!file_put_contents($root."settings.json", $settingsJson)) {
+		if (!empty($isAtRoot) && $isAtRoot) {
+			$path = "settings.json";
+		} else {
+			$path = $root."settings.json";
+		}
+
+		if (!file_put_contents($path, $settingsJson)) {
 			message("Couldn't write settings file. Make sure PHP has write access.");
 		}
 	}
