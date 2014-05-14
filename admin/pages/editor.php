@@ -128,14 +128,17 @@
 			<select id="listCategory">
 <option value='0'>Page</option>
 <?php
-	$types = $mysqli->query("SELECT * FROM categories");
-	while ($type = $types->fetch_assoc()) {
-		if ($entry['listCategory'] == $type['id']) {
-			$selected = "selected";
-		} else {
-			$selected = "";
+	$categories = $mysqli->query("SELECT * FROM categories");
+	
+	if ($categories) {
+		while ($category = $categories->fetch_assoc()) {
+			if ($entry['listCategory'] == $category['id']) {
+				$selected = "selected";
+			} else {
+				$selected = "";
+			}
+			echo "<option value='".$category['id']."' $selected>".$category['name']."</option>\n";
 		}
-		echo "<option value='".$type['id']."' $selected>".$type['name']."</option>\n";
 	}
 ?>
 			</select>
