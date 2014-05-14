@@ -93,13 +93,15 @@
 <option value='0'>Page</option>
 <?php
 	$categories = $mysqli->query("SELECT * FROM categories");
-	while ($category = $categories->fetch_assoc()) {
-		if ($entry['category'] == $category['id']) {
-			$selected = "selected";
-		} else {
-			$selected = "";
+	if ($categories) {
+		while ($category = $categories->fetch_assoc()) {
+			if ($entry['category'] == $category['id']) {
+				$selected = "selected";
+			} else {
+				$selected = "";
+			}
+			echo "<option value='".$category['id']."' $selected>".$category['name']."</option>\n";
 		}
-		echo "<option value='".$category['id']."' $selected>".$category['name']."</option>\n";
 	}
 ?>
 	</select>
