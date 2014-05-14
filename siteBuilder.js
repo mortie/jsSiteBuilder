@@ -224,7 +224,6 @@ async.series({
 					if (entry == context.siteIndex) {
 						writeEntry(context.settings.dir.out, entry);
 					}
-
 					--context.callbacks;
 				});
 			}
