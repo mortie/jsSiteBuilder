@@ -2,7 +2,7 @@
 	requirePassword();
 ?>
 
-<form id="form" method="post" action="?s=updateSettings">
+<form id="form" method="post" action="?s=updateCategories">
 <?php
 	$categories = $mysqli->query("SELECT * FROM categories");
 

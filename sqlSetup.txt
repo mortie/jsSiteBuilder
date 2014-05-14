@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `{db}`.`entries` (
   PRIMARY KEY (`id`) )
 ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS `{db}`.`types` (
+CREATE TABLE IF NOT EXISTS `{db}`.`categories` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `name` VARCHAR(60) NOT NULL ,
   PRIMARY KEY (`id`) )
