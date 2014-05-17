@@ -83,29 +83,23 @@ async.series({
 
 				//loop through all the media
 				for (var i=0; i<result.length; ++i) {
-					var medium = result[i];
+					var mediaItem = result[i];
 
-					//get the media which don't exist in the public dir
+					//write media to the public dir
 					++context.callbacks;
-					fs.exists(context.settings.dir.out+"media/"+medium.id+medium.extension, function(exists) {
-						if (!exists) {
+					context.connection.query("SELECT id, content, extension FROM media WHERE id="+mediaItem.id, function(err, result) {
+						var currentMedia = result[0];
 
-							//if the file doesn't exist, query database to get the file's content...
-							++context.callbacks;
-							context.connection.query("SELECT id, content, extension FROM media WHERE id="+medium.id, function(err, result) {
-								medium = result[0];
+						var path = context.settings.dir.out+"media/"+currentMedia.id+"."+currentMedia.extension;
 
-								//and write the content to disk.
-								++context.callbacks;
-								fs.writeFile(context.settings.dir.out+"media/"+medium.id+"."+medium.extension, medium.content, function(err) {
-									error("Writing file failed.", err);
-									--context.callbacks;
-								});
-								--context.callbacks;
-							});
-						}
+						//write the content to disk.
+						++context.callbacks;
+						fs.writeFile(path, currentMedia.content, function(err) {
+							error("Writing file failed.", err);
+							--context.callbacks;
+						});
 						--context.callbacks;
-					}.bind(medium))
+					});
 				}
 				--context.callbacks;
 			});
@@ -353,11 +347,11 @@ function parseEntry(entry, callback) {
 
 			media[mediaItem.title] = {
 				"id": mediaItem.id,
-	"extension": mediaItem.extension
+				"extension": mediaItem.extension
 			}
 		}
 
-		var placeHolders = entryText.match(/\{.+\}/);
+		var placeHolders = entryText.match(/\{.+\}/g);
 		if (placeHolders) {
 			for (i=0; i<placeHolders.length; ++i) {
 				var placeHolder = placeHolders[i].replace(/[\{\}]/g, "").split(";;");
