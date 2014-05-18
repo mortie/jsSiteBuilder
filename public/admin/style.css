@@ -105,3 +105,12 @@ form {
 #update .commit {
 	margin-bottom: 10px;
 }
+
+.page a,
+.page a:visited {
+	color: 000;
+	text-decoration: none;
+}
+.page a:hover {
+	text-decoration: underline;
+}

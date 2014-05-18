@@ -211,7 +211,7 @@ async.series({
 						"title": entry.title+" - "+context.settings.display.title,
 						"menu": buildMenu(entry),
 						"content": entry.html
-					}); 
+					}, true); 
 
 					writeEntry(context.settings.dir.out+entry.slug+"/", entry);
 
@@ -420,7 +420,7 @@ function writeEntry(path, entry) {
 	}
 }
 
-function template(tmp, args) {
+function template(tmp, args, disableComments) {
 	if (!context.caches.template) {
 		context.caches.template = {};
 	}
@@ -453,8 +453,10 @@ function template(tmp, args) {
 		}
 	}
 
-	str = "<!--Start of template "+tmp+"-->\n"+str;
-	str += "<!--End of template "+tmp+"-->\n";
+	if (disableComments !== true) {
+		str = "<!--Start of template "+tmp+"-->\n"+str;
+		str += "<!--End of template "+tmp+"-->\n";
+	}
 
 	return str;
 }
