@@ -6,7 +6,12 @@
 }
 
 #content .media * {
-	max-width: 100%;
+	width: 100%;
+	border-style: none;
+}
+
+#content .media .desc {
+	text-align: center;
 }
 
 #content .media {
