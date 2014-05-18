@@ -1,0 +1,19 @@
+@media(max-width: 600px) {
+	#menu .nav .button {
+		font-size: 10pt;
+		padding: 3px;
+		overflow: scroll;
+		height: 15px;
+		margin-top: 10px;
+	}
+
+	#menu .nav ul {
+		margin-left: 0px;
+	}
+
+	#content .section .body {
+		font-size: 9pt;
+		margin-right: 10px;
+		margin-left: 10px;
+	}
+}
