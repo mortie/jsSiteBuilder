@@ -1,6 +1,7 @@
 <?php
 	requirePassword();
 
+	global $entry;
 	if (!empty($_GET['id'])) {
 		$id = $mysqli->real_escape_string($_GET['id']);
 		$entry = $mysqli->query("SELECT * FROM entries WHERE id='$id'")->fetch_assoc();
@@ -16,6 +17,15 @@
 			"sort"=>0,
 			"display"=>true
 		];
+	}
+
+	function getProp($property, $escape=true) {
+		global $entry;
+		if ($escape) {
+			return htmlentities($entry[$property]);
+		} else {
+			return $entry[$property];
+		}
 	}
 ?>
 
@@ -77,18 +87,18 @@
 
 <div class="section">
 	Title:
-	<input id="title" type="text" class="wide" value="<?=$entry['title'] ?>">
+	<input id="title" type="text" class="wide" value="<?=getProp('title') ?>">
 </div>
 
 <div class="section">
 	Slug:
-	<input id="slug" type="text" class="wide" value="<?=$entry['slug'] ?>">
+	<input id="slug" type="text" class="wide" value="<?=getProp('slug') ?>">
 </div>
 
 <div class="section">
 	<div>
 		Sort:
-		<input id="sort" type="number" value="<?=$entry['sort'] ?>">
+		<input id="sort" type="number" value="<?=getProp('sort') ?>">
 	</div>
 	<select id="category">
 <option value='0'>Page</option>
@@ -113,7 +123,7 @@
 	<label><input type="radio" name="textOrList" onclick="useEditor('list')" <?php if ($entry['type'] != 0) echo "checked" ?>>List</label><br>
 
 	<div id="textEditor">
-		<textarea id="textarea"><?=$entry['markdown'] ?></textarea>
+		<textarea id="textarea"><?=getProp('markdown', false) ?></textarea>
 	</div>
 
 	<div id="listEditor">
