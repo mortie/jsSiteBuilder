@@ -462,50 +462,50 @@ function template(tmp, args, disableComments) {
 }
 
 var errorGrades = [
-"Info   ",
+	"Info   ",
 	"Notice ",
 	"Warning",
 	"Error  "
-	];
+];
 
-	function log(text, grade) {
-		if (!grade) {
-			grade = 0;
+function log(text, grade) {
+	if (!grade) {
+		grade = 0;
+	}
+
+	text = errorGrades[grade]+": "+text;
+	console.log(text);
+
+	if (context.settings.logToFile) {
+		try {
+			if (!fs.existsSync(context.settings.dir.log)) {
+				fs.mkdirSync(context.settings.dir.log);
+			}
+		} catch(err) {
+			console.log(errorGrades[2]+": Could not create log dir! ("+err+")");
 		}
 
-		text = errorGrades[grade]+": "+text;
-		console.log(text);
+		if (!context.caches.log) {
+			context.caches.log = {};
 
-		if (context.settings.logToFile) {
-			try {
-				if (!fs.existsSync(context.settings.dir.log)) {
-					fs.mkdirSync(context.settings.dir.log);
-				}
-			} catch(err) {
-				console.log(errorGrades[2]+": Could not create log dir! ("+err+")");
-			}
+			var date = new Date();
 
-			if (!context.caches.log) {
-				context.caches.log = {};
+			var yyyy = new String(date.getFullYear());	
+			var mm = new String(date.getMonth()+1);
+			if (mm.length < 2) mm = "0"+mm;
+			var dd = new String(date.getDate());
+			if (dd.length < 2) dd = "0"+dd;
 
-				var date = new Date();
+			var hours = new String(date.getHours());
+			if (hours.length < 2) hours = "0"+hours;
+			var minutes = new String(date.getMinutes());
+			if (minutes.length < 2) minutes = "0"+minutes;
+			var seconds = new String(date.getSeconds());
+			if (seconds.length < 2) seconds = "0"+seconds;
 
-				var yyyy = new String(date.getFullYear());	
-				var mm = new String(date.getMonth()+1);
-				if (mm.length < 2) mm = "0"+mm;
-				var dd = new String(date.getDate());
-				if (dd.length < 2) dd = "0"+dd;
-
-				var hours = new String(date.getHours());
-				if (hours.length < 2) hours = "0"+hours;
-				var minutes = new String(date.getMinutes());
-				if (minutes.length < 2) minutes = "0"+minutes;
-				var seconds = new String(date.getSeconds());
-				if (seconds.length < 2) seconds = "0"+seconds;
-
-				context.caches.log.dateString = yyyy+"."+mm+"."+dd;
-				context.caches.log.timeString = hours+":"+minutes+":"+seconds;
-			}
+			context.caches.log.dateString = yyyy+"."+mm+"."+dd;
+			context.caches.log.timeString = hours+":"+minutes+":"+seconds;
+		}
 
 		var path = context.settings.dir.log+context.caches.log.dateString;
 		text = "["+context.caches.log.timeString+"] "+text;
