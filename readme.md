@@ -25,4 +25,4 @@ Now that dependencies are fixed, here's what you need to do:
 
 By default, jsSiteBuilder has a category named "pages". All entries in that category will end up in the menu bar. You probably want to create a new category, "posts", and create a page which lists all entries in the category "posts".
 
-If anything is unclear, feel free to message me at mail.mort.coffee.
+If anything is unclear, feel free to message me at [mail@mort.coffee](mailto:mail@mort.coffee).
