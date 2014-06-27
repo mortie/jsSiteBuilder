@@ -43,6 +43,9 @@
 	$mysqli->query("UPDATE entries SET $str WHERE id=".$entry['id']);
 	message($mysqli->error);
 
+	//update entries which list this entry
+	$mysqli->query("UPDATE entries SET updated=0 WHERE listCategory=".$entry['category']);
+
 	$settings->updated = false;
 	writeSettings();
 
